@@ -53,32 +53,33 @@ def read_database():
 # ----------------------------
 # Load CSV
 # ----------------------------
-def load_csv_to_influx():
-    print("Loading CSV data into InfluxDB...")
+def load_csv():
+    print("Loading sensor CSV into InfluxDB...")
 
     df = pd.read_csv(CSV_FILE)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["time"] = pd.to_datetime(df["time"])
 
     points = []
 
     for _, row in df.iterrows():
         point = (
-            Point(MEASUREMENT)
-            .field("temperature", float(row["temperature"]))
-            .field("humidity", float(row["humidity"]))
-            .time(row["timestamp"], WritePrecision.NS)
+            Point("sensor_data")
+            .tag("device_id", row["device_id"])
+            .tag("sensor_type", row["sensor_type"])
+            .field("value", float(row["value"]))
+            .time(row["time"], WritePrecision.NS)
         )
         points.append(point)
 
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=points)
 
-    print("CSV successfully loaded.")
+    print("Sensor data loaded.")
 
 # ----------------------------
 # Startup
 # ----------------------------
 with app.app_context():
-    load_csv_to_influx()
+    load_csv()
 
 
 if __name__ == "__main__":
