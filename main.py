@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from influxdb import InfluxDBClient
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -30,11 +30,35 @@ query_api = client.query_api()
 
 @app.route("/data", methods=['GET'])
 def get_data():
-    message = {"time": datetime.datetime.now(),
-               "temperature": "TODO",
-               "humidity": "TODO"
-               }
-    return jsonify(message)
+    device_id = request.args.get("device_id")
+    sensor_type = request.args.get("sensor_type")
+    start = request.args.get("start", "-1d")
+
+    query = f'''
+    from(bucket: "{INFLUX_BUCKET}")
+      |> range(start: {start})
+      |> filter(fn: (r) => r["_measurement"] == "sensor_data")
+    '''
+
+    if device_id:
+        query += f'|> filter(fn: (r) => r["device_id"] == "{device_id}")\n'
+
+    if sensor_type:
+        query += f'|> filter(fn: (r) => r["sensor_type"] == "{sensor_type}")\n'
+
+    tables = query_api.query(query)
+
+    results = []
+    for table in tables:
+        for record in table.records:
+            results.append({
+                "time": record.get_time().isoformat(),
+                "device_id": record.values.get("device_id"),
+                "sensor_type": record.values.get("sensor_type"),
+                "value": record.get_value()
+            })
+
+    return jsonify(results), 200
 
 @app.route("/prediction", methods=['GET'])
 def get_prediction():
@@ -48,7 +72,6 @@ def read_sensors():
 # @TODO
 def read_database():
     return
-
 
 # ----------------------------
 # Load CSV
