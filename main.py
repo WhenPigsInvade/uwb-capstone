@@ -34,28 +34,30 @@ query_api = client.query_api()
 def get_data():
     device_id = request.args.get("device_id")
     sensor_type = request.args.get("sensor_type")
-    start = request.args.get("start")
+    start = request.args.get("start", "-30d")
+    all_data = request.args.get("all")
 
-    # Base query
     query = f'''
     from(bucket: "{INFLUX_BUCKET}")
-      |> range(start: -30d)
+      |> range(start: {start})
       |> filter(fn: (r) => r["_measurement"] == "sensor_data")
     '''
 
-    # Apply filters if provided
+    # Apply optional filters
     if device_id:
         query += f'|> filter(fn: (r) => r["device_id"] == "{device_id}")\n'
 
     if sensor_type:
         query += f'|> filter(fn: (r) => r["sensor_type"] == "{sensor_type}")\n'
 
-    # If no query parameters at all → return latest 5
-    if not request.args:
+    # If no filters AND no all=true → return latest 5
+    if not request.args or (all_data != "true" and len(request.args) == 0):
         query += '''
           |> sort(columns: ["_time"], desc: true)
           |> limit(n: 5)
         '''
+
+    # If all=true → no limit applied (full dataset returned)
 
     tables = query_api.query(query)
 
