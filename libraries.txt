@@ -1,5 +1,0 @@
-flask
-dash
-influxdb
-influxdb_client
-pandas

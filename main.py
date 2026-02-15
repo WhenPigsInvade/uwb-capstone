@@ -10,9 +10,10 @@ import datetime
 # ----------------------------
 # Configuration
 # ----------------------------
-INFLUX_URL = "http://localhost:69"
+INFLUX_URL = "http://localhost:8086"
 INFLUX_ORG = "exawater"
-INFLUX_BUCKET = "sensor-data"
+INFLUX_BUCKET = "database"
+INFLUX_TOKEN = "RqVG5ECxqv3ztW4RyYATvaL07v2DYZmOMxgsTrRtjItImnDX7TNA_d75uGWPlWUCjeG5qVozn0y55PQO1kPD-A=="
 
 SERVICE_PORT = 420
 
@@ -22,6 +23,7 @@ MEASUREMENT = "environment"
 app = Flask(__name__)
 client = InfluxDBClient(
     url=INFLUX_URL,
+    token=INFLUX_TOKEN,
     org=INFLUX_ORG
 )
 
@@ -32,7 +34,8 @@ query_api = client.query_api()
 def get_data():
     device_id = request.args.get("device_id")
     sensor_type = request.args.get("sensor_type")
-    start = request.args.get("start", "-1d")
+    start = request.args.get("start", "-30d")
+    all_data = request.args.get("all")
 
     query = f'''
     from(bucket: "{INFLUX_BUCKET}")
@@ -40,11 +43,21 @@ def get_data():
       |> filter(fn: (r) => r["_measurement"] == "sensor_data")
     '''
 
+    # Apply optional filters
     if device_id:
         query += f'|> filter(fn: (r) => r["device_id"] == "{device_id}")\n'
 
     if sensor_type:
         query += f'|> filter(fn: (r) => r["sensor_type"] == "{sensor_type}")\n'
+
+    # If no filters AND no all=true → return latest 5
+    if not request.args or (all_data != "true" and len(request.args) == 0):
+        query += '''
+          |> sort(columns: ["_time"], desc: true)
+          |> limit(n: 5)
+        '''
+
+    # If all=true → no limit applied (full dataset returned)
 
     tables = query_api.query(query)
 
@@ -73,6 +86,7 @@ def read_sensors():
 def read_database():
     return
 
+# @TODO remove loading from csv and integrate fully with influxdb
 # ----------------------------
 # Load CSV
 # ----------------------------
@@ -103,7 +117,6 @@ def load_csv():
 # ----------------------------
 with app.app_context():
     load_csv()
-
 
 if __name__ == "__main__":
     app.run(port=SERVICE_PORT)
