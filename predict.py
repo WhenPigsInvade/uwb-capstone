@@ -162,7 +162,7 @@ def score_settings(water_matrix, energy_matrix): #may have to adjust to make sur
 if __name__ == "__main__":
 
     # Example dataset (replace with real data)
-    df = pd.read_csv("cooling-chamber.csv")
+    df = pd.read_csv("data/cooling-chamber.csv")
 
     split_index = int(len(df) * 0.8)
 
