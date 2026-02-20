@@ -21,9 +21,22 @@ Repository for all code for Exawater.
 
 ## API Service Setup
 
-1. Make sure you have the required libraries by running `pip install -r requirements.txt`
+1. Pre-requisites:
 
-2. Run `python3 main.py` to start the service. The service port is `http://localhost:420`
+If you are running without a venv:
+```
+sudo python3 -m pip install -U pip
+sudo python3 -m pip install -U setuptools
+```
+With a venv:
+```
+pip3 install -U pip
+pip3 install -U setuptools
+```
+
+2. Make sure you have the required libraries by running `pip install -r requirements.txt`
+
+3. Run `python3 main.py` to start the service. The service port is `http://localhost:420`
 
 ## UI Setup
 

@@ -1,5 +1,9 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, callback
 import pandas as pd
+import requests
+
+
+API_URL = "http://localhost:420/read-sensors"
 
 app = Dash()
 
@@ -15,10 +19,6 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Exawater"
 
 df = pd.read_csv('data/data.csv')
-
-
-
-
 
 app.layout = html.Div(
     children=[
@@ -44,6 +44,7 @@ app.layout = html.Div(
             className="header-left"
         ),
 
+        # Center Div
         html.Div(
             children = 
                 html.Div(
@@ -61,6 +62,7 @@ app.layout = html.Div(
             className="header-center",
         ),
 
+        # Right Div
         html.P(
             children=(
                 "Right"
@@ -88,15 +90,24 @@ app.layout = html.Div(
 def render_content(tab):
     if tab == 'tab-1':
         return html.Div([
-            html.H3('Tab content 1'),
-            dcc.Graph(
-                figure=dict(
-                    data=[dict(
-                        x=[1, 2, 3],
-                        y=[3, 1, 2],
-                        type='bar'
-                    )]
-                )
+            html.H1("Latest Temperature & Humidity"),
+
+            # Table to display latest reading
+            dash_table.DataTable(
+                id='sensor-table',
+                columns=[
+                    {"name": "Temperature (°C)", "id": "temperature"},
+                    {"name": "Humidity (%)", "id": "humidity"}
+                ],
+                style_table={'width': '50%'},
+                style_cell={'textAlign': 'center'}
+            ),
+
+            # Auto-refresh every 5 seconds
+            dcc.Interval(
+                id='interval-component',
+                interval=5*1000,  # milliseconds
+                n_intervals=0
             )
         ])
     elif tab == 'tab-2':
@@ -104,7 +115,29 @@ def render_content(tab):
             html.H3('Tab content 2'),
             dash_table.DataTable(df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]),
         ])
+    
 
+@app.callback(
+    Output('sensor-table', 'data'),
+    Input('interval-component', 'n_intervals')
+)
+def update_data(n):
+    try:
+        # Fetch data from API
+        response = requests.get(API_URL, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+
+        # Expecting JSON like: {"temperature": 23.5, "humidity": 60}
+        temperature = float(data["temperature"])
+        humidity = float(data["humidity"])
+
+        # Return as table row
+        return [{"temperature": temperature, "humidity": humidity}]
+
+    except (requests.RequestException, KeyError, ValueError) as e:
+        # Show error in table
+        return [{"temperature": "Error", "humidity": "Error"}]
 
 if __name__ == '__main__':
    app.run(debug=True)

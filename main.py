@@ -79,8 +79,10 @@ def get_prediction():
     return jsonify(message)
 
 # @TODO
+@app.route("/read-sensors", methods=['GET'])
 def read_sensors():
-    return
+    message = {"temperature": "TODO", "humidity": "TODO"}
+    return jsonify(message)
 
 # @TODO
 def read_database():
