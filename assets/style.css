@@ -2,7 +2,6 @@
   font-size: 48px;
   color: blue;
   width: 20%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   text-align: center;
@@ -45,9 +44,13 @@
   align-items: center; /* Vertically centers content */
   flex-direction: row; /* or row */
   justify-content: left; /* Horizontally centers content */
-  height: 100%; /* Set height for alignment */
   border: 8px solid black;
-  margin: 16px;
+}
+
+
+html, body {
+    height: 100%;
+    margin: 0;
 }
 
 /* #dash-app-content {

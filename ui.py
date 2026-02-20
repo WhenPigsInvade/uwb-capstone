@@ -69,7 +69,16 @@ app.layout = html.Div(
         ),
         
     ],
-    className="header"
+    className="header",
+    style={
+        "minHeight": "100vh",  # full viewport height
+        "display": "flex",
+        "flexDirection": "row",
+        "align-items": "flex-start",
+        "backgroundColor": "#f0f0f0",
+        "margins" : "0px"
+    }
+
 )
 
 @callback(
