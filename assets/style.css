@@ -1,0 +1,55 @@
+.header-left {
+  font-size: 48px;
+  color: blue;
+  width: 20%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  margin: 4px;
+  justify-content: center;
+}
+
+.header-center {
+  font-size: 48px;
+  color: blue;
+  width: 60%;
+  margin: 4px;
+}
+
+.header-right {
+  font-size: 48px;
+  color: blue;
+  width: 20%;
+  margin: 4px;
+}
+
+.box{
+  font-size: 24px;
+  color: blue;
+  text-align: center;
+  border: 4px solid black;
+  margin: 4px;
+}
+
+.temperature {
+  display: flex;
+  align-items: center; /* Vertically centers content */
+  flex-direction: row; /* or row */
+  justify-content: space-around;
+}
+
+
+.header {
+  display: flex;
+  align-items: center; /* Vertically centers content */
+  flex-direction: row; /* or row */
+  justify-content: left; /* Horizontally centers content */
+  height: 100%; /* Set height for alignment */
+  border: 8px solid black;
+  margin: 16px;
+}
+
+/* #dash-app-content {
+  height: 100%;
+} */
