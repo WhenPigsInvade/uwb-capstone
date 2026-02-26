@@ -43,7 +43,7 @@ import matplotlib.pyplot as plt
 #add fan speed
 #add headmap for optimization visualization
 
-def train_regression_models(df, train,test, degree=2):
+def train_regression_models(df_train, train,test, degree=2):
     """
     data: pandas DataFrame with columns
           ['dew_point', 'fan_speed', 'cooler_temp',
@@ -93,10 +93,10 @@ def train_regression_models(df, train,test, degree=2):
     #plot model with training data
     #currently we only have one coil temp.
 
-    features = ['dew_point', 'coil_temp']   
-    display = PartialDependenceDisplay.from_estimator(energy_model, X_test, features)
-    plt.title("Interaction: Dew Point & Coil Temp vs. Energy Use")
-    plt.show()
+    # features = ['dew_point', 'coil_temp']   
+    # display = PartialDependenceDisplay.from_estimator(energy_model, X_test, features)
+    # plt.title("Interaction: Dew Point & Coil Temp vs. Energy Use")
+    # plt.show()
 
 
     # R² scores for training accuracy
@@ -130,7 +130,7 @@ def grid_search(models, dew_point, temp_steps): #add fan_steps later
     #for i, fan in enumerate(fan_steps):
     for j, temp in enumerate(temp_steps):
 
-        X = pd.DataFrame([[dew_point, temp]], columns=['dew_point', 'coil_temp']) #prevent error with mismatching df
+        X = pd.DataFrame([[dew_point, temp]], columns=['dew_point', 'coil_temp']) #prevent error with mismatching df_train
 
         water_matrix[j] = water_model.predict(X)[0]
         energy_matrix[j] = energy_model.predict(X)[0]
@@ -159,23 +159,33 @@ def score_settings(water_matrix, energy_matrix): #may have to adjust to make sur
 
     return score_matrix, max_index
 
-if __name__ == "__main__":
+def main(curr_fan_sp, curr_dew_pt, curr_water_tp): #each input should only be a single value
+    #TODO --> is there a way to get this to only run once and be stored? maybe offload to another file
+    
+    # Training data (always in the file) --> to be replaced
+    df_train = pd.read_csv("Cooling chamber data.xlsx - Extrapolated data.csv")
 
-    # Example dataset (replace with real data)
-    df = pd.read_csv("cooling-chamber.csv")
+    #Projection data --> inputted from outside
 
-    split_index = int(len(df) * 0.8)
+    split_index = int(len(df_train) * 0.8)
 
-    test = df.iloc[:split_index]
-    train = df.iloc[split_index:]
+    test = df_train.iloc[:split_index]
+    train = df_train.iloc[split_index:]
     
     # Train models
-    water_model, energy_model = train_regression_models(df,train,test)
+    water_model, energy_model = train_regression_models(df_train,train,test)
+
+
+    # Predict water output and energy yeild at given params
+
+    X_pred = np.array([[curr_dew_pt, curr_water_tp]]) #later add fan speed here
+    Y_pred_water = water_model.predict(X_pred)
+    Y_pred_energy = energy_model.predict(X_pred)
 
     # Grid inputs
     #fan_steps = np.linspace(1, 5, 10) #1-5 with 10 steps
     temp_steps = np.linspace(5, 10, 10) 
-    dew_point = 15  # fixed for optimization
+    dew_point = curr_dew_pt #current input from the service
 
     # Grid search
     water_mat, energy_mat = grid_search(
@@ -193,3 +203,10 @@ if __name__ == "__main__":
 
    #print(f"Optimal Fan Speed: {op_fan_sp}")
     print(f"Optimal Cooler Temp: {op_water_temp}")
+    print(f"Predicted Water Yeild: {Y_pred_water}")
+    print(f"Predicted Energy Yse: {Y_pred_energy}")
+    result = (op_water_temp, Y_pred_water,Y_pred_energy) #later - also return fan speed
+    return result
+
+if __name__ == "__main__":
+    main()
