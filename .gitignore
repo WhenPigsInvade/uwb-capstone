@@ -1,1 +1,8 @@
+# Influxdb Token
 token
+
+# Virtual Env
+/lib
+/Scripts
+/Include
+pyvenv.cfg
