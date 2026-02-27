@@ -1,5 +1,5 @@
 # Influxdb Token
-token.py
+token.txt
 
 # Virtual Env
 /lib
@@ -7,3 +7,4 @@ token.py
 /Include
 
 pyvenv.cfg
+
