@@ -1,0 +1,32 @@
+services:
+  influxdb:
+    image: influxdb:2
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: password
+      DOCKER_INFLUXDB_INIT_ORG: exawater
+      DOCKER_INFLUXDB_INIT_BUCKET: database
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: 37Fu_Gk7SIZwhmD-BeSBZoRl0WWNa0WWKK8udS6SI-zsMLOkyM1GW6pRfYHX2devOijcBIM8SE92VLETiS22sQ==
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    container_name: flask-api
+    volumes:
+      - ./data:/data
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+volumes:
+  influxdb_data:
