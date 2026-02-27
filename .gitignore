@@ -1,8 +1,9 @@
 # Influx Token
-token
+token.txt
 
 # Venv
 /Include
 /Lib
 /Scripts
+/venv
 pyvenv.cfg

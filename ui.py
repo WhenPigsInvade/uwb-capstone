@@ -31,14 +31,14 @@ app.layout = html.Div(
                         html.P(children="20"),
                         html.P(children="mph")
                     ],
-                    className="fan-speed, box"
+                    className="fan-speed box center-vertical"
                 ),
                 html.Div(
                     children=[
                         html.P(children="Water Collection"),
                         html.P(children="*insert fancy graphic here*"),
                     ],
-                    className="water-collection, box"
+                    className="water-collection box center-vertical"
                 ),
             ],
             className="header-left"
@@ -49,7 +49,7 @@ app.layout = html.Div(
             children = 
                 html.Div(
                     children=[
-                        html.P(children="Current System Metrics"),
+                        html.H1(children="Current System Metrics"),
 
                         dcc.Tabs(id='tabs-example-1', value='tab-1', children=[
                             dcc.Tab(label='Latest', value='tab-1'),
@@ -64,9 +64,38 @@ app.layout = html.Div(
 
         # Right Div
         html.P(
-            children=(
-                "Right"
-            ),
+            children=[
+                html.Div(
+                    children=[
+                        html.H2("Optimal Water Generation"),
+                    ],
+                    className="box"
+                ),
+
+                html.Div(
+                    children=[
+                        html.P(children="Fan Speed"),
+                        html.P(children="20"),
+                        html.P(children="mph")
+                    ],
+                    className="fan-speed-right box center-vertical"
+                ),
+                html.Div(
+                    children=[
+                        html.P(children="Water Chiller Temperature"),
+                        html.P(children="5C"),
+                    ],
+                    className="water-chiller-temp box center-vertical"
+                ),
+                html.Div(
+                    children=[
+                        html.P(children="Water Chiller Flow Rate"),
+                        html.P(children="22"),
+                        html.P(children="mph")
+                    ],
+                    className="water-chiller-flow-rate box center-vertical"
+                ),
+            ],
             className="header-right",
         ),
         
@@ -90,7 +119,7 @@ app.layout = html.Div(
 def render_content(tab):
     if tab == 'tab-1':
         return html.Div([
-            html.H1("Latest Temperature & Humidity"),
+            # html.H1("Latest Temperature & Humidity"),
 
             # Table to display latest reading
             dash_table.DataTable(
@@ -99,8 +128,13 @@ def render_content(tab):
                     {"name": "Temperature (°C)", "id": "temperature"},
                     {"name": "Humidity (%)", "id": "humidity"}
                 ],
-                style_table={'width': '50%'},
-                style_cell={'textAlign': 'center'}
+                style_table={'width': '100%'},
+                style_cell={
+                    'textAlign': 'center',
+                    'width': '50%',
+                    'minWidth': '50%',
+                    'maxWidth': '50%',
+                }
             ),
 
             # Auto-refresh every 5 seconds
@@ -112,8 +146,10 @@ def render_content(tab):
         ])
     elif tab == 'tab-2':
         return html.Div([
-            html.H3('Tab content 2'),
-            dash_table.DataTable(df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]),
+            # html.H3('Tab content 2'),
+            dash_table.DataTable(df.to_dict('records'), [{"name": i, "id": i} for i in df.columns],
+            style_cell={'textAlign': 'left'}
+                                 ),
         ])
     
 
@@ -129,8 +165,8 @@ def update_data(n):
         data = response.json()
 
         # Expecting JSON like: {"temperature": 23.5, "humidity": 60}
-        temperature = float(data["temperature"])
-        humidity = float(data["humidity"])
+        temperature = data.get("temperature")
+        humidity = data.get("humidity")
 
         # Return as table row
         return [{"temperature": temperature, "humidity": humidity}]

@@ -4,6 +4,9 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
 import datetime
+import random
+
+
 
 
 # @TODO Move to own config file
@@ -13,7 +16,9 @@ import datetime
 INFLUX_URL = "http://localhost:8086"
 INFLUX_ORG = "exawater"
 INFLUX_BUCKET = "database"
-INFLUX_TOKEN = "RqVG5ECxqv3ztW4RyYATvaL07v2DYZmOMxgsTrRtjItImnDX7TNA_d75uGWPlWUCjeG5qVozn0y55PQO1kPD-A=="
+
+with open("token.txt", "r") as f:
+    INFLUX_TOKEN = f.read().strip()
 
 SERVICE_PORT = 420
 
@@ -81,7 +86,9 @@ def get_prediction():
 # @TODO
 @app.route("/read-sensors", methods=['GET'])
 def read_sensors():
-    message = {"temperature": "TODO", "humidity": "TODO"}
+    temperature = random.randint(20, 30)
+    humidity = random.randint(70, 80)
+    message = {"temperature": temperature, "humidity": humidity}
     return jsonify(message)
 
 # @TODO
@@ -121,4 +128,4 @@ with app.app_context():
     load_csv()
 
 if __name__ == "__main__":
-    app.run(port=SERVICE_PORT)
+    app.run(port=SERVICE_PORT, debug=True)
