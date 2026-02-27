@@ -2,14 +2,15 @@ from flask import Flask, jsonify, request
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
+import time
 import os
 
 # ----------------------------
 # Configuration
 # ----------------------------
-INFLUX_URL = "http://influxdb:8086"   # service name in docker-compose
-INFLUX_ORG = "exawater"
-INFLUX_BUCKET = "database"
+INFLUX_URL = os.getenv("INFLUX_URL")
+INFLUX_ORG = os.getenv("INFLUX_ORG")
+INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
 INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
 
 if not INFLUX_TOKEN:
@@ -38,9 +39,10 @@ query_api = client.query_api()
 # ----------------------------
 @app.route("/data", methods=["GET"])
 def get_data():
+    print("Data endpoint hit")
     device_id = request.args.get("device_id")
     sensor_type = request.args.get("sensor_type")
-    start = request.args.get("start", "-30d")
+    start = request.args.get("start", "-100y")
     all_data = request.args.get("all")
 
     query = f'''
@@ -112,9 +114,28 @@ def load_csv():
     print("Sensor data loaded.")
 
 
+def wait_for_influx():
+    import requests
+    url = "http://influxdb:8086/health"
+
+    for i in range(20):
+        try:
+            r = requests.get(url)
+            if r.status_code == 200:
+                print("InfluxDB is ready!")
+                return
+        except:
+            pass
+
+        print("Waiting for InfluxDB...")
+        time.sleep(3)
+
+    raise RuntimeError("InfluxDB failed to start")
+
 # ----------------------------
 # Startup
 # ----------------------------
 if __name__ == "__main__":
+    wait_for_influx()
     load_csv()
-    app.run(host="0.0.0.0", port=SERVICE_PORT)
+    app.run(host="0.0.0.0", port=SERVICE_PORT, debug=True)
