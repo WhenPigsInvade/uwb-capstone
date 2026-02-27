@@ -159,7 +159,7 @@ def score_settings(water_matrix, energy_matrix): #may have to adjust to make sur
 
     return score_matrix, max_index
 
-def main(curr_fan_sp, curr_dew_pt, curr_water_tp): #each input should only be a single value
+def predict(curr_fan_sp, curr_dew_pt, curr_water_tp): #each input should only be a single value
     #TODO --> is there a way to get this to only run once and be stored? maybe offload to another file
     
     # Training data (always in the file) --> to be replaced
@@ -207,6 +207,3 @@ def main(curr_fan_sp, curr_dew_pt, curr_water_tp): #each input should only be a 
     print(f"Predicted Energy Yse: {Y_pred_energy}")
     result = (op_water_temp, Y_pred_water,Y_pred_energy) #later - also return fan speed
     return result
-
-if __name__ == "__main__":
-    main()
