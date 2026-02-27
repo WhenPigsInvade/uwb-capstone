@@ -1,5 +1,5 @@
 # Influx Token
-token
+token.txt
 
 # Venv
 /Include
@@ -8,3 +8,4 @@ token
 /venv
 
 pyvenv.cfg
+
