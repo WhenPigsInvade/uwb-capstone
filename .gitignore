@@ -1,5 +1,6 @@
 # Influx Token
 token.txt
+.env
 
 # Venv
 /Include
