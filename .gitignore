@@ -1,5 +1,6 @@
 # Influx Token
 token.txt
+.env
 
 # Venv
 /Include
@@ -9,4 +10,5 @@ token.txt
 
 
 pyvenv.cfg
+
 
