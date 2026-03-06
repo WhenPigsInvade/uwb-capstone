@@ -3,7 +3,8 @@ import pandas as pd
 import requests
 
 
-API_URL = "http://localhost:420/read-sensors"
+API_URL_SENSORS = "http://localhost:420/read-sensors"
+API_URL_HISTORY = "http://localhost:420/data"
 
 app = Dash()
 
@@ -18,7 +19,6 @@ external_stylesheets = [
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Exawater"
 
-df = pd.read_csv('data/data.csv')
 
 app.layout = html.Div(
     children=[
@@ -112,6 +112,29 @@ app.layout = html.Div(
 
 )
 
+def fetch_history():
+    try:
+        response = requests.get(API_URL_HISTORY, timeout=5)
+        response.raise_for_status()
+
+        df = pd.DataFrame(response.json())
+
+        df["time"] = pd.to_datetime(df["time"]).dt.floor("5min")
+
+        df_pivot = df.pivot_table(
+            index="time",
+            columns="sensor_type",
+            values="value",
+            aggfunc="first"
+        ).reset_index()
+
+        df_pivot = df_pivot.sort_values("time", ascending=False)
+
+        return df_pivot
+
+    except requests.RequestException:
+        return pd.DataFrame()
+
 @callback(
     Output('tabs-example-content-1', 'children'),
     Input('tabs-example-1', 'value')
@@ -145,35 +168,48 @@ def render_content(tab):
             )
         ])
     elif tab == 'tab-2':
+
+        df = fetch_history()
+        sensor_columns = [c for c in df.columns if c != "time"]
+
         return html.Div([
-            # html.H3('Tab content 2'),
-            dash_table.DataTable(df.to_dict('records'), [{"name": i, "id": i} for i in df.columns],
-            style_cell={'textAlign': 'left'}
-                                 ),
+
+            dcc.Dropdown(
+                id="sensor-filter",
+                options=[{"label": s, "value": s} for s in sensor_columns],
+                value=sensor_columns,   # all selected initially
+                multi=True,
+                placeholder="Select sensors"
+            ),
+
+            dash_table.DataTable(
+                id="history-table",
+                style_cell={'textAlign': 'center'},
+                page_size=10,
+                sort_action="native",
+            ),
         ])
     
 
 @app.callback(
-    Output('sensor-table', 'data'),
-    Input('interval-component', 'n_intervals')
+    Output("history-table", "data"),
+    Output("history-table", "columns"),
+    Input("sensor-filter", "value")
 )
-def update_data(n):
-    try:
-        # Fetch data from API
-        response = requests.get(API_URL, timeout=5)
-        response.raise_for_status()
-        data = response.json()
+def update_history(selected_sensors):
 
-        # Expecting JSON like: {"temperature": 23.5, "humidity": 60}
-        temperature = data.get("temperature")
-        humidity = data.get("humidity")
+    df = fetch_history()
 
-        # Return as table row
-        return [{"temperature": temperature, "humidity": humidity}]
+    if df.empty:
+        return [], []
 
-    except (requests.RequestException, KeyError, ValueError) as e:
-        # Show error in table
-        return [{"temperature": "Error", "humidity": "Error"}]
+    columns_to_show = ["time"] + selected_sensors
+    df_filtered = df[columns_to_show]
+
+    return (
+        df_filtered.to_dict("records"),
+        [{"name": i, "id": i} for i in df_filtered.columns]
+    )
 
 if __name__ == '__main__':
    app.run(debug=True)

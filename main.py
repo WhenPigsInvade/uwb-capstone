@@ -39,7 +39,7 @@ query_api = client.query_api()
 def get_data():
     device_id = request.args.get("device_id")
     sensor_type = request.args.get("sensor_type")
-    start = request.args.get("start", "-30d")
+    start = request.args.get("start", "-10y")
     all_data = request.args.get("all")
 
     query = f'''
