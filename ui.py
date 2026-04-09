@@ -1,4 +1,5 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, callback
+import dash_daq as daq
 import pandas as pd
 import requests
 
@@ -23,22 +24,52 @@ app.title = "Exawater"
 app.layout = html.Div(
     children=[
     
+        #left Div
         html.Div(
             children=[
                 html.Div(
                     children=[
                         html.P(children="Fan Speed"),
-                        html.P(children="20"),
-                        html.P(children="mph")
+                        daq.Gauge(
+                            min=0,
+                            max=20,
+                            value=15,
+                            size=150,
+                            units='mph',
+                            showCurrentValue=True
+                        )
                     ],
                     className="fan-speed box center-vertical"
                 ),
                 html.Div(
                     children=[
-                        html.P(children="Water Collection"),
-                        html.P(children="*insert fancy graphic here*"),
+                        html.P(children="Chiller Temp"),
+                        daq.Thermometer(
+                            value=20,
+                            max=35,
+                            min=5,
+                            units="C",
+                            height=120,
+                            showCurrentValue=True
+                        )  
                     ],
-                    className="water-collection box center-vertical"
+                    className="chiller-temp box center-vertical"
+                ),
+                html.Div(
+                    children=[
+                        html.P("Water Collected"),
+                        daq.Tank(
+                        id="progress-gauge",
+                        color="#86D1FF",
+                        height=150,
+                        units="Liters",
+                        value=3,
+                        max=5,
+                        min=0,
+                        showCurrentValue=True,  # default size 200 pixel
+                        ),
+                    ],
+                    className= "water-collection box center-vertical"
                 ),
             ],
             className="header-left"
@@ -106,7 +137,7 @@ app.layout = html.Div(
         "display": "flex",
         "flexDirection": "row",
         "align-items": "flex-start",
-        "backgroundColor": "#f0f0f0",
+        "backgroundColor": "#1e2130",
         "margins" : "0px"
     }
 
