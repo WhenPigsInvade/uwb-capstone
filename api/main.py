@@ -1,26 +1,29 @@
 from flask import Flask, jsonify, request
-from influxdb import InfluxDBClient
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
-import datetime
+import time
+import os
 
-
-# @TODO Move to own config file
 # ----------------------------
 # Configuration
 # ----------------------------
-INFLUX_URL = "http://localhost:8086"
-INFLUX_ORG = "exawater"
-INFLUX_BUCKET = "database"
-INFLUX_TOKEN = "RqVG5ECxqv3ztW4RyYATvaL07v2DYZmOMxgsTrRtjItImnDX7TNA_d75uGWPlWUCjeG5qVozn0y55PQO1kPD-A=="
+INFLUX_URL = os.getenv("INFLUX_URL")
+INFLUX_ORG = os.getenv("INFLUX_ORG")
+INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
+INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
 
-SERVICE_PORT = 420
+if not INFLUX_TOKEN:
+    raise RuntimeError("INFLUX_TOKEN not found in environment variables")
 
-CSV_FILE = "data/data.csv"
-MEASUREMENT = "environment"
+SERVICE_PORT = 5000
+CSV_FILE = "/data/data.csv"
 
 app = Flask(__name__)
+
+# ----------------------------
+# InfluxDB Client
+# ----------------------------
 client = InfluxDBClient(
     url=INFLUX_URL,
     token=INFLUX_TOKEN,
@@ -30,11 +33,16 @@ client = InfluxDBClient(
 write_api = client.write_api(write_options=SYNCHRONOUS)
 query_api = client.query_api()
 
-@app.route("/data", methods=['GET'])
+
+# ----------------------------
+# Routes
+# ----------------------------
+@app.route("/data", methods=["GET"])
 def get_data():
+    print("Data endpoint hit")
     device_id = request.args.get("device_id")
     sensor_type = request.args.get("sensor_type")
-    start = request.args.get("start", "-30d")
+    start = request.args.get("start", "-100y")
     all_data = request.args.get("all")
 
     query = f'''
@@ -43,21 +51,18 @@ def get_data():
       |> filter(fn: (r) => r["_measurement"] == "sensor_data")
     '''
 
-    # Apply optional filters
     if device_id:
         query += f'|> filter(fn: (r) => r["device_id"] == "{device_id}")\n'
 
     if sensor_type:
         query += f'|> filter(fn: (r) => r["sensor_type"] == "{sensor_type}")\n'
 
-    # If no filters AND no all=true → return latest 5
-    if not request.args or (all_data != "true" and len(request.args) == 0):
+    # Only limit if all != true
+    if all_data != "true":
         query += '''
           |> sort(columns: ["_time"], desc: true)
           |> limit(n: 5)
         '''
-
-    # If all=true → no limit applied (full dataset returned)
 
     tables = query_api.query(query)
 
@@ -73,24 +78,20 @@ def get_data():
 
     return jsonify(results), 200
 
-@app.route("/prediction", methods=['GET'])
+
+@app.route("/prediction", methods=["GET"])
 def get_prediction():
-    message = {"prediction": "TODO"}
-    return jsonify(message)
+    return jsonify({"prediction": "TODO"}), 200
 
-# @TODO
-def read_sensors():
-    return
 
-# @TODO
-def read_database():
-    return
-
-# @TODO remove loading from csv and integrate fully with influxdb
 # ----------------------------
-# Load CSV
+# Load CSV into Influx (one-time seed)
 # ----------------------------
 def load_csv():
+    if not os.path.exists(CSV_FILE):
+        print("No CSV found. Skipping seed.")
+        return
+
     print("Loading sensor CSV into InfluxDB...")
 
     df = pd.read_csv(CSV_FILE)
@@ -101,8 +102,8 @@ def load_csv():
     for _, row in df.iterrows():
         point = (
             Point("sensor_data")
-            .tag("device_id", row["device_id"])
-            .tag("sensor_type", row["sensor_type"])
+            .tag("device_id", str(row["device_id"]))
+            .tag("sensor_type", str(row["sensor_type"]))
             .field("value", float(row["value"]))
             .time(row["time"], WritePrecision.NS)
         )
@@ -112,11 +113,29 @@ def load_csv():
 
     print("Sensor data loaded.")
 
+
+def wait_for_influx():
+    import requests
+    url = "http://influxdb:8086/health"
+
+    for i in range(20):
+        try:
+            r = requests.get(url)
+            if r.status_code == 200:
+                print("InfluxDB is ready!")
+                return
+        except:
+            pass
+
+        print("Waiting for InfluxDB...")
+        time.sleep(3)
+
+    raise RuntimeError("InfluxDB failed to start")
+
 # ----------------------------
 # Startup
 # ----------------------------
-with app.app_context():
-    load_csv()
-
 if __name__ == "__main__":
-    app.run(port=SERVICE_PORT)
+    wait_for_influx()
+    load_csv()
+    app.run(host="0.0.0.0", port=SERVICE_PORT, debug=True)
