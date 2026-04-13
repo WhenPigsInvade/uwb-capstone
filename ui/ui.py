@@ -4,16 +4,12 @@ import pandas as pd
 import requests
 
 
-API_URL_SENSORS = "http://localhost:420/read-sensors"
-API_URL_HISTORY = "http://localhost:420/data"
-
-app = Dash()
+API_URL_SENSORS = "http://api:5000/read-sensors"
+API_URL_HISTORY = "http://api:5000/data"
 
 external_stylesheets = [
     {
-        "href": (
-            "/assets/style.css"
-        ),
+        "href": "/assets/style.css",
         "rel": "stylesheet",
     },
 ]
@@ -144,11 +140,16 @@ app.layout = html.Div(
 )
 
 def fetch_history():
+    print("Fetching history from API...")
+    print(response.json())
     try:
         response = requests.get(API_URL_HISTORY, timeout=5)
         response.raise_for_status()
 
         df = pd.DataFrame(response.json())
+
+        if df.empty:
+            return df
 
         df["time"] = pd.to_datetime(df["time"]).dt.floor("5min")
 
@@ -243,4 +244,4 @@ def update_history(selected_sensors):
     )
 
 if __name__ == '__main__':
-   app.run(debug=True)
+   app.run(host="0.0.0.0", port=8050, debug=True)
