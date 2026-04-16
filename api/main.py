@@ -16,7 +16,7 @@ INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
 if not INFLUX_TOKEN:
     raise RuntimeError("INFLUX_TOKEN not found in environment variables")
 
-SERVICE_PORT = 5000
+SERVICE_PORT = 5001
 CSV_FILE = "/data/data.csv"
 
 app = Flask(__name__)

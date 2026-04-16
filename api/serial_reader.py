@@ -9,7 +9,7 @@ import os
 # Windows:  'COM3', 'COM4', etc.
 # Mac:      '/dev/cu.usbserial-xxxx'
 # Linux:    '/dev/ttyUSB0' or '/dev/ttyACM0'
-SERIAL_PORT = 'COM3'
+SERIAL_PORT = '/dev/cu.usbserial-0001'
 BAUD_RATE   = 57600
 
 client    = InfluxDBClient(url=os.environ["INFLUX_URL"], token=os.environ["INFLUX_TOKEN"])
@@ -61,7 +61,7 @@ def main():
     print(f"Listening on {SERIAL_PORT} at {BAUD_RATE} baud...")
     with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
         while True:
-            line = ser.readline().decode('utf-8').strip()
+            line = ser.readline().decode('utf-8', errors='ignore').strip()
             if line:
                 print(f"Received: {line}")
                 process_data(line)
