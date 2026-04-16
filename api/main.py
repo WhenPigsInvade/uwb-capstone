@@ -19,6 +19,14 @@ if not INFLUX_TOKEN:
 SERVICE_PORT = 5001
 CSV_FILE = "/data/data.csv"
 
+VALID_SENSORS = {"coil_temp", "ambient_temp", "humidity", "water_produced"}
+SENSOR_UNITS  = {
+    "coil_temp":      "°C",
+    "ambient_temp":   "°C",
+    "humidity":       "%",
+    "water_produced": "g",
+}
+
 app = Flask(__name__)
 
 # ----------------------------
@@ -35,11 +43,66 @@ query_api = client.query_api()
 
 
 # ----------------------------
+# Shared ingestion logic
+# ----------------------------
+def process_data(data):
+    points = []
+
+    for reading in data.get("readings", []):
+        sensor_type = reading.get("sensor_type")
+        value       = reading.get("value")
+
+        if sensor_type not in VALID_SENSORS or value is None:
+            print(f"Invalid reading: {reading}")
+            continue
+
+        point = (
+            Point("sensor_data")
+            .tag("device_id",   str(data["device_id"]))
+            .tag("sensor_type", sensor_type)
+            .tag("unit",        SENSOR_UNITS[sensor_type])
+            .field("value",     float(value))
+            .time(time.time_ns(), WritePrecision.NS)
+        )
+        points.append(point)
+
+    if points:
+        write_api.write(
+            bucket=INFLUX_BUCKET,
+            org=INFLUX_ORG,
+            record=points
+        )
+        print(f"Written {len(points)} points to InfluxDB")
+
+
+# ----------------------------
 # Routes
 # ----------------------------
-@app.route("/data", methods=["GET"])
-def get_data():
+@app.route("/data", methods=["GET", "POST"])
+def data_handler():
+    # ------------------------
+    # POST → ESP32 ingestion
+    # ------------------------
+    if request.method == "POST":
+        try:
+            data = request.get_json()
+            print(f"Received: {data}")
+
+            if not data or "device_id" not in data:
+                return jsonify({"error": "Invalid payload"}), 400
+
+            process_data(data)
+            return jsonify({"status": "ok"}), 200
+
+        except Exception as e:
+            print(f"Error: {e}")
+            return jsonify({"status": "error"}), 400
+
+    # ------------------------
+    # GET → existing query API
+    # ------------------------
     print("Data endpoint hit")
+
     device_id = request.args.get("device_id")
     sensor_type = request.args.get("sensor_type")
     start = request.args.get("start", "-100y")
@@ -57,7 +120,6 @@ def get_data():
     if sensor_type:
         query += f'|> filter(fn: (r) => r["sensor_type"] == "{sensor_type}")\n'
 
-    # Only limit if all != true
     if all_data != "true":
         query += '''
           |> sort(columns: ["_time"], desc: true)
@@ -132,10 +194,30 @@ def wait_for_influx():
 
     raise RuntimeError("InfluxDB failed to start")
 
+def is_bucket_empty():
+    query = f'''
+    from(bucket: "{INFLUX_BUCKET}")
+      |> range(start: -100y)
+      |> limit(n: 1)
+    '''
+
+    tables = query_api.query(query)
+
+    for table in tables:
+        for _ in table.records:
+            return False  # Found at least one record
+
+    return True  # No data found
+
 # ----------------------------
 # Startup
 # ----------------------------
 if __name__ == "__main__":
     wait_for_influx()
-    load_csv()
+
+    if is_bucket_empty():
+        print("Bucket is empty. Seeding from CSV...")
+        load_csv()
+    else:
+        print("Bucket already contains data. Skipping seed.")
     app.run(host="0.0.0.0", port=SERVICE_PORT, debug=True)
