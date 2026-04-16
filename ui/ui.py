@@ -152,32 +152,30 @@ def fetch_history():
         response = requests.get(API_URL_HISTORY, timeout=5)
         response.raise_for_status()
 
-        data = response.json()
-        print(data)
+        df = pd.DataFrame(response.json())
 
-        if not data:
-            return pd.DataFrame()
+        if df.empty:
+            return df
 
-        df = pd.DataFrame(data)
-
-        # FIX HERE 👇
         df["time"] = pd.to_datetime(df["time"], format="ISO8601")
 
-        df_pivot = df.pivot_table(
+        # OPTIONAL but recommended for ESP32 alignment
+        df["time"] = df["time"].dt.round("2s")
+
+        # TRUE pivot (no aggregation)
+        df = df.pivot(
             index="time",
             columns="sensor_type",
-            values="value",
-            aggfunc="first"
+            values="value"
         ).reset_index()
 
-        df_pivot = df_pivot.sort_values("time", ascending=False)
+        df = df.sort_values("time", ascending=False)
 
-        return df_pivot
+        return df
 
     except Exception as e:
         print(f"Unexpected error: {e}")
         return pd.DataFrame()
-
 @callback(
     Output('tabs-example-content-1', 'children'),
     Input('tabs-example-1', 'value')
