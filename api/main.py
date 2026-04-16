@@ -17,7 +17,7 @@ if not INFLUX_TOKEN:
     raise RuntimeError("INFLUX_TOKEN not found in environment variables")
 
 SERVICE_PORT = 5001
-CSV_FILE = "/data/data.csv"
+CSV_FILE = os.getenv("CSV_FILE", "/data/data2.csv")
 
 VALID_SENSORS = {"coil_temp", "ambient_temp", "humidity", "water_produced"}
 SENSOR_UNITS  = {
@@ -150,22 +150,42 @@ def get_prediction():
 # Load CSV into Influx (one-time seed)
 # ----------------------------
 def load_csv():
+    print(f"Looking for CSV at: {CSV_FILE}")
+    print(f"File exists: {os.path.exists(CSV_FILE)}")
     if not os.path.exists(CSV_FILE):
         print("No CSV found. Skipping seed.")
         return
 
     print("Loading sensor CSV into InfluxDB...")
 
-    df = pd.read_csv(CSV_FILE)
-    df["time"] = pd.to_datetime(df["time"])
+    # Skip Influx metadata lines starting with '#'
+    df = pd.read_csv(CSV_FILE, comment="#")
+
+    if df.empty:
+        print("CSV is empty after filtering metadata.")
+        return
+
+    # Rename columns to match your schema
+    df = df.rename(columns={
+        "_time": "time",
+        "_value": "value"
+    })
+
+    # Convert time
+    df["time"] = pd.to_datetime(df["time"], format="ISO8601")
 
     points = []
 
     for _, row in df.iterrows():
+        # Skip invalid rows just in case
+        if pd.isna(row["value"]) or pd.isna(row["sensor_type"]):
+            continue
+
         point = (
             Point("sensor_data")
             .tag("device_id", str(row["device_id"]))
             .tag("sensor_type", str(row["sensor_type"]))
+            .tag("unit", str(row.get("unit", "")))  # optional
             .field("value", float(row["value"]))
             .time(row["time"], WritePrecision.NS)
         )
@@ -173,7 +193,7 @@ def load_csv():
 
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=points)
 
-    print("Sensor data loaded.")
+    print(f"Loaded {len(points)} points into InfluxDB.")
 
 
 def wait_for_influx():

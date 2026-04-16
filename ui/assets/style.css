@@ -120,6 +120,10 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.dash-table-container {
+  color: black !important;
+}
+
 /* #dash-app-content {
   height: 100%;
 } */
