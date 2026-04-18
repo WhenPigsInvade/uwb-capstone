@@ -5,7 +5,7 @@ const char* ssid = "YOUR_HOTSPOT_NAME";
 const char* password = "YOUR_PASSWORD";
 
 // Your PC hotspot IP (IMPORTANT)
-const char* serverUrl = "http://192.168.137.1:5000/data";
+const char* serverUrl = "http://192.168.137.1:5001/data";
 
 void setup() {
   Serial.begin(115200);
