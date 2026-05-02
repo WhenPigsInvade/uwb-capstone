@@ -13,7 +13,13 @@ external_stylesheets = [
         "rel": "stylesheet",
     },
 ]
-app = Dash(__name__, external_stylesheets=external_stylesheets)
+
+app = Dash(
+    __name__,
+    external_stylesheets=external_stylesheets,
+    suppress_callback_exceptions=True  # ✅ add this
+)
+
 app.title = "Exawater"
 
 
@@ -141,7 +147,7 @@ app.layout = html.Div(
 
 def fetch_history():
     print("Fetching history from API...")
-    print(response.json())
+
     try:
         response = requests.get(API_URL_HISTORY, timeout=5)
         response.raise_for_status()
@@ -151,22 +157,25 @@ def fetch_history():
         if df.empty:
             return df
 
-        df["time"] = pd.to_datetime(df["time"]).dt.floor("5min")
+        df["time"] = pd.to_datetime(df["time"], format="ISO8601")
 
-        df_pivot = df.pivot_table(
+        # OPTIONAL but recommended for ESP32 alignment
+        df["time"] = df["time"].dt.round("2s")
+
+        # TRUE pivot (no aggregation)
+        df = df.pivot(
             index="time",
             columns="sensor_type",
-            values="value",
-            aggfunc="first"
+            values="value"
         ).reset_index()
 
-        df_pivot = df_pivot.sort_values("time", ascending=False)
+        df = df.sort_values("time", ascending=False)
 
-        return df_pivot
+        return df
 
-    except requests.RequestException:
+    except Exception as e:
+        print(f"Unexpected error: {e}")
         return pd.DataFrame()
-
 @callback(
     Output('tabs-example-content-1', 'children'),
     Input('tabs-example-1', 'value')
@@ -178,18 +187,25 @@ def render_content(tab):
 
             # Table to display latest reading
             dash_table.DataTable(
-                id='sensor-table',
-                columns=[
-                    {"name": "Temperature (°C)", "id": "temperature"},
-                    {"name": "Humidity (%)", "id": "humidity"}
-                ],
-                style_table={'width': '100%'},
+                id="latest-table",
+                style_table={
+                    'width': '100%',
+                    'overflowX': 'auto',
+                },
                 style_cell={
                     'textAlign': 'center',
-                    'width': '50%',
-                    'minWidth': '50%',
-                    'maxWidth': '50%',
-                }
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                    'color': 'black',
+                    'backgroundColor': 'white',
+                },
+                style_header={
+                    'color': 'black',
+                    'backgroundColor': '#f0f0f0',
+                    'fontWeight': 'bold'
+                },
+                page_size=10,
+                sort_action="native",
             ),
 
             # Auto-refresh every 5 seconds
@@ -202,6 +218,12 @@ def render_content(tab):
     elif tab == 'tab-2':
 
         df = fetch_history()
+
+        if df.empty:
+            sensor_columns = []
+        else:
+            sensor_columns = [c for c in df.columns if c != "time"]
+            
         sensor_columns = [c for c in df.columns if c != "time"]
 
         return html.Div([
@@ -222,6 +244,19 @@ def render_content(tab):
             ),
         ])
     
+@app.callback(
+    Output("latest-table", "data"),
+    Input("interval-component", "n_intervals")
+)
+def update_latest(n):
+    df = fetch_history()
+
+    if df.empty:
+        return []
+
+    latest = df.sort_values("time", ascending=False).head(1)
+
+    return latest.to_dict("records")
 
 @app.callback(
     Output("history-table", "data"),
@@ -233,6 +268,9 @@ def update_history(selected_sensors):
     df = fetch_history()
 
     if df.empty:
+        return [], []
+
+    if not selected_sensors:
         return [], []
 
     columns_to_show = ["time"] + selected_sensors

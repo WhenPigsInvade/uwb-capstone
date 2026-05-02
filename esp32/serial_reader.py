@@ -1,16 +1,10 @@
-import serial
-import json
+from flask import Flask, request, jsonify
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 from datetime import datetime, timezone
 import os
 
-# --- adjust port to match your system ---
-# Windows:  'COM3', 'COM4', etc.
-# Mac:      '/dev/cu.usbserial-xxxx'
-# Linux:    '/dev/ttyUSB0' or '/dev/ttyACM0'
-SERIAL_PORT = '/dev/cu.usbserial-0001'
-BAUD_RATE   = 57600
+app = Flask(__name__)
 
 client    = InfluxDBClient(url=os.environ["INFLUX_URL"], token=os.environ["INFLUX_TOKEN"])
 write_api = client.write_api(write_options=SYNCHRONOUS)
@@ -23,14 +17,9 @@ SENSOR_UNITS  = {
     "water_produced": "g",
 }
 
-def process_data(raw_line):
-    try:
-        data = json.loads(raw_line)
-    except json.JSONDecodeError:
-        print(f"Skipping non-JSON line: {raw_line}")
-        return
-
+def process_data(data):
     points = []
+
     for reading in data.get("readings", []):
         sensor_type = reading.get("sensor_type")
         value       = reading.get("value")
@@ -56,15 +45,7 @@ def process_data(raw_line):
             record=points
         )
         print(f"Written {len(points)} points to InfluxDB")
-    
-def main():
-    print(f"Listening on {SERIAL_PORT} at {BAUD_RATE} baud...")
-    with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
-        while True:
-            line = ser.readline().decode('utf-8', errors='ignore').strip()
-            if line:
-                print(f"Received: {line}")
-                process_data(line)
+
 
 if __name__ == "__main__":
-    main()
+    app.run(host="0.0.0.0", port=5002)
