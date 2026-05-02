@@ -28,14 +28,7 @@ services:
       - influxdb
     restart: unless-stopped
 
-  ui:
-    build: ./ui
-    container_name: dash-ui
-    ports:
-      - "8050:8050"
-    depends_on:
-      - api
-    restart: unless-stopped
+
 
 volumes:
   influxdb_data:

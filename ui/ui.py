@@ -4,8 +4,8 @@ import pandas as pd
 import requests
 
 
-API_URL_SENSORS = "http://api:5000/read-sensors"
-API_URL_HISTORY = "http://api:5000/data"
+API_URL_SENSORS = "http://localhost:5001/read-sensors"
+API_URL_HISTORY = "http://localhost:5001/data"
 
 external_stylesheets = [
     {
@@ -244,4 +244,4 @@ def update_history(selected_sensors):
     )
 
 if __name__ == '__main__':
-   app.run(host="0.0.0.0", port=8050, debug=True)
+   app.run(host="localhost", port=8050, debug=True)
