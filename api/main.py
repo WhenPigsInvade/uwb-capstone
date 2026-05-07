@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
+import requests
 import time
 import os
 
@@ -19,12 +20,21 @@ if not INFLUX_TOKEN:
 SERVICE_PORT = 5001
 CSV_FILE = os.getenv("CSV_FILE", "/data/data2.csv")
 
-VALID_SENSORS = {"coil_temp", "ambient_temp", "humidity", "water_produced"}
+# --- NEW: Dictionary mapping custom sensor names to Shelly URLs ---
+SHELLY_DEVICES = {
+    "apower_1": "http://192.168.137.100/rpc/shelly.GetStatus",
+    "apower_2": "http://192.168.137.101/rpc/shelly.GetStatus"
+}
+
+# --- UPDATED: Added both apower sensors ---
+VALID_SENSORS = {"coil_temp", "ambient_temp", "humidity", "water_produced", "apower_1", "apower_2"}
 SENSOR_UNITS  = {
     "coil_temp":      "°C",
     "ambient_temp":   "°C",
     "humidity":       "%",
     "water_produced": "g",
+    "apower_1":       "W", 
+    "apower_2":       "W", 
 }
 
 app = Flask(__name__)
@@ -91,6 +101,27 @@ def data_handler():
             if not data or "device_id" not in data:
                 return jsonify({"error": "Invalid payload"}), 400
 
+            # --- UPDATED: Loop through both Shelly devices ---
+            if "readings" not in data:
+                data["readings"] = []
+
+            for sensor_name, shelly_url in SHELLY_DEVICES.items():
+                try:
+                    shelly_resp = requests.get(shelly_url, timeout=5)
+                    
+                    if shelly_resp.status_code == 200:
+                        shelly_data = shelly_resp.json()
+                        apower = shelly_data.get("switch:0", {}).get("apower")
+                        
+                        if apower is not None:
+                            data["readings"].append({
+                                "sensor_type": sensor_name,
+                                "value": float(apower)
+                            })
+                except Exception as e:
+                    print(f"Warning: Failed to fetch Shelly data for {sensor_name} at {shelly_url}: {e}")
+            # ---------------------------------------------------------
+
             process_data(data)
             return jsonify({"status": "ok"}), 200
 
@@ -123,7 +154,7 @@ def data_handler():
     if all_data != "true":
         query += '''
           |> sort(columns: ["_time"], desc: true)
-          |> limit(n: 5)
+          |> limit(n: 10)
         '''
 
     tables = query_api.query(query)
@@ -197,7 +228,6 @@ def load_csv():
 
 
 def wait_for_influx():
-    import requests
     url = "http://influxdb:8086/health"
 
     for i in range(20):
@@ -214,6 +244,7 @@ def wait_for_influx():
 
     raise RuntimeError("InfluxDB failed to start")
 
+
 def is_bucket_empty():
     query = f'''
     from(bucket: "{INFLUX_BUCKET}")
@@ -228,6 +259,7 @@ def is_bucket_empty():
             return False  # Found at least one record
 
     return True  # No data found
+
 
 # ----------------------------
 # Startup
