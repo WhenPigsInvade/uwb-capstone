@@ -26,15 +26,28 @@ SHELLY_DEVICES = {
     "apower_2": "http://192.168.137.101/rpc/shelly.GetStatus"
 }
 
-# --- UPDATED: Added both apower sensors ---
-VALID_SENSORS = {"coil_temp", "ambient_temp", "humidity", "water_produced", "apower_1", "apower_2"}
+# --- UPDATED: Added all ESP32 JSON keys and Shelly devices ---
+VALID_SENSORS = {
+    "ambient_temp", "humidity", 
+    "ambient_temp_outside", "humidity_outside", 
+    "coil_temp_top", "coil_temp_mid", "coil_temp_bot", 
+    "water_produced", "fan_speed", "chiller_temp", 
+    "apower_1", "apower_2"
+}
+
 SENSOR_UNITS  = {
-    "coil_temp":      "°C",
-    "ambient_temp":   "°C",
-    "humidity":       "%",
-    "water_produced": "g",
-    "apower_1":       "W", 
-    "apower_2":       "W", 
+    "ambient_temp":         "°C",
+    "humidity":             "%",
+    "ambient_temp_outside": "°C",
+    "humidity_outside":     "%",
+    "coil_temp_top":        "°C",
+    "coil_temp_mid":        "°C",
+    "coil_temp_bot":        "°C",
+    "water_produced":       "g",
+    "fan_speed":            "lvl",  # You can use whatever unit makes sense here
+    "chiller_temp":         "°C",
+    "apower_1":             "W", 
+    "apower_2":             "W", 
 }
 
 app = Flask(__name__)
