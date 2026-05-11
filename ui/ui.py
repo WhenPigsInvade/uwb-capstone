@@ -45,7 +45,7 @@ app.layout = html.Div(
                 ),
                 html.Div(
                     children=[
-                        html.P(children="Chiller Temp"),
+                        html.P(children="Chiller"),
                         daq.Thermometer(
                             value=20,
                             max=35,
@@ -120,14 +120,7 @@ app.layout = html.Div(
                     ],
                     className="water-chiller-temp box center-vertical"
                 ),
-                html.Div(
-                    children=[
-                        html.P(children="Water Chiller Flow Rate"),
-                        html.P(children="22"),
-                        html.P(children="mph")
-                    ],
-                    className="water-chiller-flow-rate box center-vertical"
-                ),
+                
             ],
             className="header-right",
         ),
