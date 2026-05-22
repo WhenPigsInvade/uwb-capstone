@@ -5,6 +5,7 @@ import pandas as pd
 import requests
 import time
 import os
+import math
 
 # ----------------------------
 # Configuration
@@ -75,16 +76,28 @@ def process_data(data):
         sensor_type = reading.get("sensor_type")
         value       = reading.get("value")
 
+        # 1. Check if sensor is valid and value exists
         if sensor_type not in VALID_SENSORS or value is None:
-            print(f"Invalid reading: {reading}")
+            print(f"Invalid or missing reading: {reading}")
             continue
 
+        # 2. Check for InfluxDB-breaking NaN values sent by the ESP32
+        try:
+            float_val = float(value)
+            if math.isnan(float_val):
+                print(f"Skipping NaN reading for {sensor_type}")
+                continue
+        except ValueError:
+            print(f"Could not convert {value} to float for {sensor_type}")
+            continue
+
+        # 3. Create the InfluxDB Point
         point = (
             Point("sensor_data")
             .tag("device_id",   str(data["device_id"]))
             .tag("sensor_type", sensor_type)
             .tag("unit",        SENSOR_UNITS[sensor_type])
-            .field("value",     float(value))
+            .field("value",     float_val)
             .time(time.time_ns(), WritePrecision.NS)
         )
         points.append(point)
