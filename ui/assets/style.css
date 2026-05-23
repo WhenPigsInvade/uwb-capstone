@@ -29,15 +29,15 @@
 
 .header-right {
   font-size: 48px;
-  color: blue;
+  color: #1e2130;
   width: 20%;
   display: flex;
   flex-direction: column;
   text-align: center;
   margin: 4px;
   justify-content: center;
-  height: 99vh;
-  background-color: midnightblue;
+  height: 75vh;
+  background-color: #86D1FF;
 }
 
 .header-right > div {
@@ -49,6 +49,13 @@
   color: white;
   text-align: center;
   /*border: 4px solid black;*/
+  margin: 4px;
+  height: 100%;
+}
+.blue-box{
+  font-size: 24px;
+  color: steelblue;
+  text-align: center;
   margin: 4px;
   height: 100%;
 }

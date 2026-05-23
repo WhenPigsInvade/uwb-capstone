@@ -1,5 +1,6 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, callback
 import dash_daq as daq
+import dash_ag_grid 
 import pandas as pd
 import requests
 
@@ -36,7 +37,7 @@ app.layout = html.Div(
                             min=0,
                             max=20,
                             value=15,
-                            size=150,
+                            size=120,
                             units='mph',
                             showCurrentValue=True
                         )
@@ -45,13 +46,13 @@ app.layout = html.Div(
                 ),
                 html.Div(
                     children=[
-                        html.P(children="Chiller"),
+                        html.P(children=" Water Chiller Temp"),
                         daq.Thermometer(
                             value=20,
                             max=35,
                             min=5,
                             units="C",
-                            height=120,
+                            height=100,
                             showCurrentValue=True
                         )  
                     ],
@@ -63,10 +64,10 @@ app.layout = html.Div(
                         daq.Tank(
                         id="progress-gauge",
                         color="#86D1FF",
-                        height=150,
+                        height=140,
                         units="Liters",
                         value=3,
-                        max=5,
+                        max=6,
                         min=0,
                         showCurrentValue=True,  # default size 200 pixel
                         ),
@@ -100,9 +101,9 @@ app.layout = html.Div(
             children=[
                 html.Div(
                     children=[
-                        html.H2("Optimal Water Generation"),
+                        html.H2("Optimal Settings"),
                     ],
-                    className="box"
+                    className= "blue-box"
                 ),
 
                 html.Div(
@@ -146,6 +147,7 @@ def fetch_history():
         response.raise_for_status()
 
         df = pd.DataFrame(response.json())
+        
 
         if df.empty:
             return df
@@ -163,7 +165,8 @@ def fetch_history():
         ).reset_index()
 
         df = df.sort_values("time", ascending=False)
-
+        
+        
         return df
 
     except Exception as e:
@@ -172,33 +175,33 @@ def fetch_history():
 @callback(
     Output('tabs-example-content-1', 'children'),
     Input('tabs-example-1', 'value')
-)
+) 
+
 def render_content(tab):
+    
     if tab == 'tab-1':
+        df = fetch_history()
+    
+        latest = df.sort_values("time", ascending=False).head(1)
+
         return html.Div([
             # html.H1("Latest Temperature & Humidity"),
-
             # Table to display latest reading
-            dash_table.DataTable(
-                id="latest-table",
-                style_table={
-                    'width': '100%',
-                    'overflowX': 'auto',
-                },
-                style_cell={
-                    'textAlign': 'center',
-                    'whiteSpace': 'normal',
-                    'height': 'auto',
-                    'color': 'black',
-                    'backgroundColor': 'white',
-                },
-                style_header={
-                    'color': 'black',
-                    'backgroundColor': '#f0f0f0',
-                    'fontWeight': 'bold'
-                },
-                page_size=10,
-                sort_action="native",
+            dash_ag_grid.AgGrid(
+                id="latest-table",  
+                rowData=latest.to_dict("records"),
+                columnDefs=[{"field": i} for i in df.columns],
+                columnSize="sizeToFit",
+                dashGridOptions={"theme": 
+                                 {"function": "themeBalham.withParams({ "
+                                 "backgroundColor: 'white', "
+                                 "headerTextColor: 'white', "
+                                 "headerBackgroundColor: 'steelBlue',"
+                                 "headerFontSize: 14,"
+                                 "headerVerticalPaddingScale: 0.5,"
+                                 "headerHorizontalPaddingScale: 0.5,"
+                                 "spacing: 10 })"}}
+
             ),
 
             # Auto-refresh every 5 seconds
@@ -207,7 +210,7 @@ def render_content(tab):
                 interval=5*1000,  # milliseconds
                 n_intervals=0
             )
-        ])
+            ])
     elif tab == 'tab-2':
 
         df = fetch_history()
