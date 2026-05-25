@@ -65,17 +65,35 @@ def score_settings(water_matrix, energy_matrix):
 
     return score_matrix, opt_fan_idx, opt_temp_idx
 
-def main(curr_fan_sp, curr_chiller_tp, curr_amb_dew_pt, curr_amb_rh, curr_coil_in_temp):
+def predict(curr_fan_sp, curr_dew_pt, curr_water_tp): #each input should only be a single value
+    #TODO --> is there a way to get this to only run once and be stored? maybe offload to another file
+    
+    # Training data (always in the file) --> to be replaced
+    df_train = pd.read_csv("Cooling chamber data.xlsx - Extrapolated data.csv")
 
-    # 1. Load trained models
-    water_model = joblib.load("water_model.joblib")
-    energy_model = joblib.load("energy_model.joblib")
+    #Projection data --> inputted from outside
 
-    # 2. Define grid search bounds (higher resolution works great with 2D!)
-    fan_steps = np.linspace(0, 5, 10)    # 1 to 5 with 10 variations
-    temp_steps = np.linspace(0, 15, 10)   
+    split_index = int(len(df_train) * 0.8)
 
-    # 3. Perform 2D grid search
+    test = df_train.iloc[:split_index]
+    train = df_train.iloc[split_index:]
+    
+    # Train models
+    water_model, energy_model = train_regression_models(df_train,train,test)
+
+
+    # Predict water output and energy yeild at given params
+
+    X_pred = np.array([[curr_dew_pt, curr_water_tp]]) #later add fan speed here
+    Y_pred_water = water_model.predict(X_pred)
+    Y_pred_energy = energy_model.predict(X_pred)
+
+    # Grid inputs
+    #fan_steps = np.linspace(1, 5, 10) #1-5 with 10 steps
+    temp_steps = np.linspace(5, 10, 10) 
+    dew_point = curr_dew_pt #current input from the service
+
+    # Grid search
     water_mat, energy_mat = grid_search(
         (water_model, energy_model), 
         curr_amb_dew_pt, 
@@ -115,5 +133,3 @@ def main(curr_fan_sp, curr_chiller_tp, curr_amb_dew_pt, curr_amb_rh, curr_coil_i
     
     result  = (op_water_temp, op_fan_sp, curr_water_pred, curr_energy_pred)
     return result
-if __name__ == "__main__":
-    main()
