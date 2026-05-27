@@ -5,6 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY main.py .
+COPY predict.py .
 
 CMD ["python", "main.py"]

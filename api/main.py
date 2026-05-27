@@ -22,18 +22,19 @@ if not INFLUX_TOKEN:
 SERVICE_PORT = 5001
 CSV_FILE = os.getenv("CSV_FILE", "/data/data2.csv")
 
-# --- NEW: Dictionary mapping custom sensor names to Shelly URLs ---
 SHELLY_DEVICES = {
     "apower_1": "http://192.168.137.100/rpc/shelly.GetStatus",
     "apower_2": "http://192.168.137.101/rpc/shelly.GetStatus"
 }
 
-# --- UPDATED: Added all ESP32 JSON keys and Shelly devices ---
+# --- UPDATED: Aligned with the new ESP32 payload ---
 VALID_SENSORS = {
     "ambient_temp", "humidity", 
     "ambient_temp_outside", "humidity_outside", 
     "coil_temp_top", "coil_temp_mid", "coil_temp_bot", 
-    "water_produced", "fan_speed", "chiller_temp", 
+    "dew_point_inside", "dew_point_outside",     
+    "current_weight", "water_rate_ml_hr",        
+    "fan_speed", "chiller_temp", 
     "apower_1", "apower_2"
 }
 
@@ -45,8 +46,11 @@ SENSOR_UNITS  = {
     "coil_temp_top":        "°C",
     "coil_temp_mid":        "°C",
     "coil_temp_bot":        "°C",
-    "water_produced":       "g",
-    "fan_speed":            "lvl",  # You can use whatever unit makes sense here
+    "dew_point_inside":     "°C",
+    "dew_point_outside":    "°C",
+    "current_weight":       "g",
+    "water_rate_ml_hr":     "ml/hr",
+    "fan_speed":            "lvl",
     "chiller_temp":         "°C",
     "apower_1":             "W", 
     "apower_2":             "W", 
@@ -65,7 +69,6 @@ client = InfluxDBClient(
 
 write_api = client.write_api(write_options=SYNCHRONOUS)
 query_api = client.query_api()
-
 
 # ----------------------------
 # Shared ingestion logic
@@ -117,9 +120,6 @@ def process_data(data):
 # ----------------------------
 @app.route("/data", methods=["GET", "POST"])
 def data_handler():
-    # ------------------------
-    # POST → ESP32 ingestion
-    # ------------------------
     if request.method == "POST":
         try:
             data = request.get_json()
@@ -128,7 +128,6 @@ def data_handler():
             if not data or "device_id" not in data:
                 return jsonify({"error": "Invalid payload"}), 400
 
-            # --- UPDATED: Loop through both Shelly devices ---
             if "readings" not in data:
                 data["readings"] = []
 
@@ -147,7 +146,6 @@ def data_handler():
                             })
                 except Exception as e:
                     print(f"Warning: Failed to fetch Shelly data for {sensor_name} at {shelly_url}: {e}")
-            # ---------------------------------------------------------
 
             process_data(data)
             return jsonify({"status": "ok"}), 200
@@ -156,9 +154,6 @@ def data_handler():
             print(f"Error: {e}")
             return jsonify({"status": "error"}), 400
 
-    # ------------------------
-    # GET → existing query API
-    # ------------------------
     print("Data endpoint hit")
 
     device_id = request.args.get("device_id")
@@ -201,17 +196,18 @@ def data_handler():
 
 @app.route("/prediction", methods=["GET"])
 def get_prediction():
-    # Query the last recorded value for the necessary sensors over the last hour
+    # --- UPDATED: Changed range from -1h to -100y to guarantee the absolute latest data point ---
     query = f'''
     from(bucket: "{INFLUX_BUCKET}")
-      |> range(start: -1h)
+      |> range(start: -100y)
       |> filter(fn: (r) => r["_measurement"] == "sensor_data")
       |> filter(fn: (r) => 
             r["sensor_type"] == "fan_speed" or 
             r["sensor_type"] == "chiller_temp" or 
             r["sensor_type"] == "ambient_temp" or 
             r["sensor_type"] == "humidity" or 
-            r["sensor_type"] == "coil_temp_top"
+            r["sensor_type"] == "coil_temp_top" or
+            r["sensor_type"] == "dew_point_inside"
       )
       |> last()
     '''
@@ -220,38 +216,23 @@ def get_prediction():
         tables = query_api.query(query)
         current_state = {}
         
-        # Unpack InfluxDB response into a dictionary
         for table in tables:
             for record in table.records:
                 current_state[record.values.get("sensor_type")] = record.get_value()
                 
-        # 1. Verify we have all the required data points
-        required_sensors = ["fan_speed", "chiller_temp", "ambient_temp", "humidity", "coil_temp_top"]
+        required_sensors = ["fan_speed", "chiller_temp", "ambient_temp", "humidity", "coil_temp_top", "dew_point_inside"]
         missing = [s for s in required_sensors if s not in current_state]
         if missing:
-            return jsonify({"error": f"Missing recent data for sensors: {missing}. Ensure the device is broadcasting."}), 400
+            return jsonify({"error": f"Missing data for sensors: {missing}. Ensure the device has broadcasted at least once."}), 400
         
-        # 2. Calculate Dew Point using the Magnus-Tetens formula
-        t = current_state["ambient_temp"]
-        rh = current_state["humidity"]
-        
-        a = 17.27
-        b = 237.7
-        alpha = ((a * t) / (b + t)) + math.log(rh / 100.0)
-        calculated_dew_point = (b * alpha) / (a - alpha)
-        
-        # 3. Feed the data into the predict function
-        # Signature: predict(curr_fan_sp, curr_chiller_tp, curr_amb_dew_pt, curr_amb_rh, curr_coil_in_temp)
         prediction_results = predict(
             curr_fan_sp=current_state["fan_speed"],
             curr_chiller_tp=current_state["chiller_temp"],
-            curr_amb_dew_pt=calculated_dew_point,
+            curr_amb_dew_pt=current_state["dew_point_inside"],
             curr_amb_rh=current_state["humidity"],
             curr_coil_in_temp=current_state["coil_temp_top"]
         )
         
-        # predict() returns: (op_water_temp, op_fan_sp, curr_water_pred, curr_energy_pred)
-        # Note: curr_water_pred and curr_energy_pred are numpy arrays, so we extract [0] and cast to float for JSON serialization
         response_data = {
             "optimal_chiller_temp": float(prediction_results[0]),
             "optimal_fan_speed": float(prediction_results[1]),
@@ -265,7 +246,6 @@ def get_prediction():
         print(f"Error generating prediction: {e}")
         return jsonify({"error": "Failed to generate prediction", "details": str(e)}), 500
 
-
 # ----------------------------
 # Load CSV into Influx (one-time seed)
 # ----------------------------
@@ -278,26 +258,22 @@ def load_csv():
 
     print("Loading sensor CSV into InfluxDB...")
 
-    # Skip Influx metadata lines starting with '#'
     df = pd.read_csv(CSV_FILE, comment="#")
 
     if df.empty:
         print("CSV is empty after filtering metadata.")
         return
 
-    # Rename columns to match your schema
     df = df.rename(columns={
         "_time": "time",
         "_value": "value"
     })
 
-    # Convert time
     df["time"] = pd.to_datetime(df["time"], format="ISO8601")
 
     points = []
 
     for _, row in df.iterrows():
-        # Skip invalid rows just in case
         if pd.isna(row["value"]) or pd.isna(row["sensor_type"]):
             continue
 
@@ -305,7 +281,7 @@ def load_csv():
             Point("sensor_data")
             .tag("device_id", str(row["device_id"]))
             .tag("sensor_type", str(row["sensor_type"]))
-            .tag("unit", str(row.get("unit", "")))  # optional
+            .tag("unit", str(row.get("unit", ""))) 
             .field("value", float(row["value"]))
             .time(row["time"], WritePrecision.NS)
         )
@@ -345,9 +321,9 @@ def is_bucket_empty():
 
     for table in tables:
         for _ in table.records:
-            return False  # Found at least one record
+            return False 
 
-    return True  # No data found
+    return True 
 
 
 # ----------------------------

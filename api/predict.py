@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
 from sklearn.inspection import PartialDependenceDisplay
+import os
 import joblib
 
 #to start, navigate to the project folder and run "source venv/bin/activate"
@@ -66,10 +67,16 @@ def score_settings(water_matrix, energy_matrix):
     return score_matrix, opt_fan_idx, opt_temp_idx
 
 def predict(curr_fan_sp, curr_chiller_tp, curr_amb_dew_pt, curr_amb_rh, curr_coil_in_temp):
+    # Get the directory from the environment, defaulting to '/data' inside the container
+    model_dir = os.getenv("MODEL_DIR", "/data")
 
-    # 1. Load trained models
-    water_model = joblib.load("water_model.joblib")
-    energy_model = joblib.load("energy_model.joblib")
+    # Construct the absolute paths
+    water_path = os.path.join(model_dir, "water_model.joblib")
+    energy_path = os.path.join(model_dir, "energy_model.joblib")
+
+    # Load trained models
+    water_model = joblib.load(water_path)
+    energy_model = joblib.load(energy_path)
 
     # 2. Define grid search bounds (higher resolution works great with 2D!)
     fan_steps = np.linspace(0, 5, 5)    # 0 to 5 with 5 variations
