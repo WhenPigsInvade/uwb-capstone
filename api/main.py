@@ -6,6 +6,7 @@ import requests
 import time
 import os
 import math
+from predict import predict
 
 # ----------------------------
 # Configuration
@@ -200,7 +201,69 @@ def data_handler():
 
 @app.route("/prediction", methods=["GET"])
 def get_prediction():
-    return jsonify({"prediction": "TODO"}), 200
+    # Query the last recorded value for the necessary sensors over the last hour
+    query = f'''
+    from(bucket: "{INFLUX_BUCKET}")
+      |> range(start: -1h)
+      |> filter(fn: (r) => r["_measurement"] == "sensor_data")
+      |> filter(fn: (r) => 
+            r["sensor_type"] == "fan_speed" or 
+            r["sensor_type"] == "chiller_temp" or 
+            r["sensor_type"] == "ambient_temp" or 
+            r["sensor_type"] == "humidity" or 
+            r["sensor_type"] == "coil_temp_top"
+      )
+      |> last()
+    '''
+    
+    try:
+        tables = query_api.query(query)
+        current_state = {}
+        
+        # Unpack InfluxDB response into a dictionary
+        for table in tables:
+            for record in table.records:
+                current_state[record.values.get("sensor_type")] = record.get_value()
+                
+        # 1. Verify we have all the required data points
+        required_sensors = ["fan_speed", "chiller_temp", "ambient_temp", "humidity", "coil_temp_top"]
+        missing = [s for s in required_sensors if s not in current_state]
+        if missing:
+            return jsonify({"error": f"Missing recent data for sensors: {missing}. Ensure the device is broadcasting."}), 400
+        
+        # 2. Calculate Dew Point using the Magnus-Tetens formula
+        t = current_state["ambient_temp"]
+        rh = current_state["humidity"]
+        
+        a = 17.27
+        b = 237.7
+        alpha = ((a * t) / (b + t)) + math.log(rh / 100.0)
+        calculated_dew_point = (b * alpha) / (a - alpha)
+        
+        # 3. Feed the data into the predict function
+        # Signature: predict(curr_fan_sp, curr_chiller_tp, curr_amb_dew_pt, curr_amb_rh, curr_coil_in_temp)
+        prediction_results = predict(
+            curr_fan_sp=current_state["fan_speed"],
+            curr_chiller_tp=current_state["chiller_temp"],
+            curr_amb_dew_pt=calculated_dew_point,
+            curr_amb_rh=current_state["humidity"],
+            curr_coil_in_temp=current_state["coil_temp_top"]
+        )
+        
+        # predict() returns: (op_water_temp, op_fan_sp, curr_water_pred, curr_energy_pred)
+        # Note: curr_water_pred and curr_energy_pred are numpy arrays, so we extract [0] and cast to float for JSON serialization
+        response_data = {
+            "optimal_chiller_temp": float(prediction_results[0]),
+            "optimal_fan_speed": float(prediction_results[1]),
+            "predicted_current_yield_ml_hr": float(prediction_results[2][0]),
+            "predicted_current_energy_kwh": float(prediction_results[3][0])
+        }
+        
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        print(f"Error generating prediction: {e}")
+        return jsonify({"error": "Failed to generate prediction", "details": str(e)}), 500
 
 
 # ----------------------------
