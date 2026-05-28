@@ -18,7 +18,7 @@ external_stylesheets = [
 
 app = Dash(
     __name__,
-    external_stylesheets=external_stylesheets,
+    external_stylesheets=[external_stylesheets, dbc.themes.BOOTSTRAP],
     suppress_callback_exceptions=True  # ✅ add this
 )
 
@@ -203,37 +203,66 @@ def render_content(tab):
         df = fetch_history()
     
         latest = df.sort_values("time", ascending=False).head(1)
-        print(latest.get("ambient_temp")[0])
+        # print(latest.get("ambient_temp"))
 
 
-        return html.Div(
-            [
+        card_content = [
+            dbc.CardHeader("Card header"),
+            dbc.CardBody(
+                [
+                    html.H5("Card title", className="card-title"),
+                    html.P(
+                        "This is some card content that we'll reuse",
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
 
-             #html.H4("Latest Temperature & Humidity"),
-             #Table to display latest reading
-               dash_ag_grid.AgGrid(
-                    id="latest-table",  
-                    rowData=latest.to_dict("records"),
-                    columnDefs=[{"field": i} for i in df.columns],
-                    defaultColDef ={
-                        "resizable": True,
-                        "cellStyle": {"wordBreak": "normal"},
-                        "autoHeaderHeight": True,
-                    },
+        ambient_temp = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("ambient_temp"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
 
-                    dashGridOptions={"theme": 
-                                 {"function": "themeBalham.withParams({ "
-                                 "backgroundColor: 'white', "
-                                 "headerTextColor: 'white', "
-                                 "headerBackgroundColor: 'steelBlue',"
-                                 "headerFontSize: 14,"
-                                 "headerVerticalPaddingScale: 0.5,"
-                                 "headerHorizontalPaddingScale: 0.5,"
-                                 "spacing: 10 })"}}
-
-
-            )
-            ])
+        return html.Div([
+                    
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Card(ambient_temp, color="primary", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
+                ],
+                className="mb-4",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Card(card_content, color="success", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="warning", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="danger", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
+                ],
+                className="mb-4",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Card(card_content, color="light")),
+                    dbc.Col(dbc.Card(card_content, color="dark", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
+                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
+                ]
+            ),  
+        ])
     elif tab == 'tab-2':
 
         df = fetch_history()
