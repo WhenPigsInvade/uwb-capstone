@@ -203,6 +203,7 @@ def render_content(tab):
         df = fetch_history()
     
         latest = df.sort_values("time", ascending=False).head(1)
+        print(latest.get("ambient_temp")[0])
 
 
         return html.Div(
@@ -210,13 +211,27 @@ def render_content(tab):
 
              #html.H4("Latest Temperature & Humidity"),
              #Table to display latest reading
-                dbc.Row(dbc.Col([{"field": i} for i in df.columns])),
+               dash_ag_grid.AgGrid(
+                    id="latest-table",  
+                    rowData=latest.to_dict("records"),
+                    columnDefs=[{"field": i} for i in df.columns],
+                    defaultColDef ={
+                        "resizable": True,
+                        "cellStyle": {"wordBreak": "normal"},
+                        "autoHeaderHeight": True,
+                    },
 
-                # Auto-refresh every 5 seconds
-                dcc.Interval(
-                id='interval-component',
-                interval=5*1000,  # milliseconds
-                n_intervals=0
+                    dashGridOptions={"theme": 
+                                 {"function": "themeBalham.withParams({ "
+                                 "backgroundColor: 'white', "
+                                 "headerTextColor: 'white', "
+                                 "headerBackgroundColor: 'steelBlue',"
+                                 "headerFontSize: 14,"
+                                 "headerVerticalPaddingScale: 0.5,"
+                                 "headerHorizontalPaddingScale: 0.5,"
+                                 "spacing: 10 })"}}
+
+
             )
             ])
     elif tab == 'tab-2':
