@@ -1,4 +1,5 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, callback
+import dash_bootstrap_components as dbc
 import dash_daq as daq
 import dash_ag_grid 
 import pandas as pd
@@ -32,35 +33,37 @@ app.layout = html.Div(
             children=[
                 html.Div(
                     children=[
-                        html.P(children="Fan Speed"),
+                        html.P(children="Fan Speed Level"),
                         daq.Gauge(
                             min=0,
-                            max=20,
-                            value=15,
+                            color="#68C5FF",
+                            max=5,
+                            value=3,
+                            scale={'start': 0, 'interval': 1, 'labelInterval': 1},
                             size=120,
-                            units='mph',
                             showCurrentValue=True
                         )
                     ],
-                    className="fan-speed box center-vertical"
+                    className="fan-speed box"
                 ),
                 html.Div(
                     children=[
-                        html.P(children=" Water Chiller Temp"),
+                        html.P(children=" Water Chiller Temp ℃"),
                         daq.Thermometer(
-                            value=20,
-                            max=35,
-                            min=5,
-                            units="C",
-                            height=100,
+                            value=10,
+                            max=20,
+                            min=0,
+                            units="℃",
+                            height=110,
+                            #color="FFFFFF",
                             showCurrentValue=True
                         )  
                     ],
-                    className="chiller-temp box center-vertical"
+                    className="chiller-temp box"
                 ),
                 html.Div(
                     children=[
-                        html.P("Water Collected"),
+                        html.P("Total Water Collected"),
                         daq.Tank(
                         id="progress-gauge",
                         color="#86D1FF",
@@ -69,10 +72,11 @@ app.layout = html.Div(
                         value=3,
                         max=6,
                         min=0,
+                        textColor="FFFFFF",
                         showCurrentValue=True,  # default size 200 pixel
                         ),
                     ],
-                    className= "water-collection box center-vertical"
+                    className= "water-collection box"
                 ),
             ],
             className="header-left"
@@ -91,9 +95,14 @@ app.layout = html.Div(
                         ]),
                         html.Div(id='tabs-example-content-1')
                     ],
-                    className="box"
+                    className="box",
+                     style={
+                        "backgroundColor": "#1e2130",
+                        }
+
                 ),
             className="header-center",
+           
         ),
 
         # Right Div
@@ -108,20 +117,31 @@ app.layout = html.Div(
 
                 html.Div(
                     children=[
-                        html.P(children="Fan Speed"),
-                        html.P(children="20"),
-                        html.P(children="mph")
+                        html.P(children="Fan Speed Level"),
+                        daq.LEDDisplay(
+                            id='optimal-fan-speed',
+                            size=25,
+                            value=3,
+                            color="#027f40",
+                            backgroundColor="#86D1FF"
+                        )
                     ],
-                    className="fan-speed-right box center-vertical"
+                    className="box center-vertical"
                 ),
                 html.Div(
                     children=[
-                        html.P(children="Water Chiller Temperature"),
-                        html.P(children="5C"),
+                        html.P(children="Water Chiller Temperature ℃"),
+                        daq.LEDDisplay(
+                            id='optimal-chiller-temp',
+                            size=25,
+                            value=7,
+                            color="#118921",
+                            backgroundColor="#86D1FF"
+                        )
+                        
                     ],
-                    className="water-chiller-temp box center-vertical"
-                ),
-                
+                    className="box center-vertical",
+                )
             ],
             className="header-right",
         ),
@@ -184,28 +204,16 @@ def render_content(tab):
     
         latest = df.sort_values("time", ascending=False).head(1)
 
-        return html.Div([
-            # html.H1("Latest Temperature & Humidity"),
-            # Table to display latest reading
-            dash_ag_grid.AgGrid(
-                id="latest-table",  
-                rowData=latest.to_dict("records"),
-                columnDefs=[{"field": i} for i in df.columns],
-                columnSize="sizeToFit",
-                dashGridOptions={"theme": 
-                                 {"function": "themeBalham.withParams({ "
-                                 "backgroundColor: 'white', "
-                                 "headerTextColor: 'white', "
-                                 "headerBackgroundColor: 'steelBlue',"
-                                 "headerFontSize: 14,"
-                                 "headerVerticalPaddingScale: 0.5,"
-                                 "headerHorizontalPaddingScale: 0.5,"
-                                 "spacing: 10 })"}}
 
-            ),
+        return html.Div(
+            [
 
-            # Auto-refresh every 5 seconds
-            dcc.Interval(
+             #html.H4("Latest Temperature & Humidity"),
+             #Table to display latest reading
+                dbc.Row(dbc.Col([{"field": i} for i in df.columns])),
+
+                # Auto-refresh every 5 seconds
+                dcc.Interval(
                 id='interval-component',
                 interval=5*1000,  # milliseconds
                 n_intervals=0
@@ -232,11 +240,15 @@ def render_content(tab):
                 placeholder="Select sensors"
             ),
 
-            dash_table.DataTable(
+            dash_ag_grid.AgGrid(
                 id="history-table",
-                style_cell={'textAlign': 'center'},
-                page_size=10,
-                sort_action="native",
+                rowData=df.to_dict("records"),
+                columnDefs=[{"field": i} for i in df.columns],
+                defaultColDef={"Autosize":True,},
+                dashGridOptions={"pagination": True, "paginationAutoPageSize": True},
+                # style_cell={'textAlign': 'center'},
+                # page_size=10,
+                # sort_action="native",
             ),
         ])
     

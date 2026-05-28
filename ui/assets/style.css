@@ -34,10 +34,11 @@
   display: flex;
   flex-direction: column;
   text-align: center;
+  border: 6px green;
   margin: 4px;
   justify-content: center;
   height: 75vh;
-  background-color: #86D1FF;
+  background-color: #83ffbb;
 }
 
 .header-right > div {
@@ -46,26 +47,28 @@
 
 .box{
   font-size: 24px;
-  color: white;
+  color:white;
   text-align: center;
   /*border: 4px solid black;*/
+  justify-content: center;  /* vertical centering */
+  background-color: steelblue;
   margin: 4px;
   height: 100%;
 }
 .blue-box{
   font-size: 24px;
-  color: steelblue;
+  color: #027f40;
   text-align: center;
   margin: 4px;
   height: 100%;
 }
 
-.center-vertical {
+/*.center-vertical {
   display: flex;
   flex-direction: column;
-  justify-content: center;  /* vertical centering */
+  justify-content: center;  /* vertical centering 
   background-color: steelblue;
-}
+}*/
 
 
 .temperature {
@@ -85,9 +88,8 @@
 }
 
 .chiller-temp{
-  display: flex;
-  flex-direction: column;
-  
+  /*display: flex;
+  flex-direction: column;*/
   align-items: center;
   margin: 1;
   padding: 0;
@@ -98,7 +100,7 @@
 .fan-speed {
   display: flex;
   flex-direction: column;
-  
+  color: white;
   align-items: center;
   margin: 1;
   padding: 0;
@@ -108,9 +110,8 @@
 }
 
 .water-collection {
-  display: flex;
-  flex-direction: column;
-  
+  /*display: flex;
+  flex-direction: column;*/
   align-items: center;
   margin: 1;
   padding: 0;
