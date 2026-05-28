@@ -52,8 +52,8 @@ SENSOR_UNITS  = {
     "water_rate_ml_hr":     "ml/hr",
     "fan_speed":            "lvl",
     "chiller_temp":         "°C",
-    "apower_1":             "W", 
-    "apower_2":             "W", 
+    "apower_1":             "kWh",
+    "apower_2":             "kWh",
 }
 
 app = Flask(__name__)
@@ -140,9 +140,12 @@ def data_handler():
                         apower = shelly_data.get("switch:0", {}).get("apower")
                         
                         if apower is not None:
+                            # --- UPDATED: Convert Watts to kWh for a 20-minute interval ---
+                            apower_kwh = (float(apower) * (20.0 / 60.0)) / 1000.0
+                            
                             data["readings"].append({
                                 "sensor_type": sensor_name,
-                                "value": float(apower)
+                                "value": apower_kwh
                             })
                 except Exception as e:
                     print(f"Warning: Failed to fetch Shelly data for {sensor_name} at {shelly_url}: {e}")
@@ -153,6 +156,7 @@ def data_handler():
         except Exception as e:
             print(f"Error: {e}")
             return jsonify({"status": "error"}), 400
+
 
     print("Data endpoint hit")
 
