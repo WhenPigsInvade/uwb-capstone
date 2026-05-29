@@ -205,22 +205,8 @@ def render_content(tab):
         latest = df.sort_values("time", ascending=False).head(1)
         print(df.columns)
 
-
-        card_content = [
-            dbc.CardHeader("Card header"),
-            dbc.CardBody(
-                [
-                    html.H5("Card title", className="card-title"),
-                    html.P(
-                        "This is some card content that we'll reuse",
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-
         ambient_temp = [
-            dbc.CardHeader("Temperature Inside"),
+            dbc.CardHeader("Temp Inside"),
             dbc.CardBody(
                 [
                     html.P(
@@ -231,7 +217,7 @@ def render_content(tab):
             ),
         ]
         ambient_temp_outside = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Ambient Temp"),
             dbc.CardBody(
                 [
                     html.P(
@@ -242,7 +228,7 @@ def render_content(tab):
             ),
         ]
         apower_1 = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Water Chiller Power"),
             dbc.CardBody(
                 [
                     html.P(
@@ -253,7 +239,7 @@ def render_content(tab):
             ),
         ]
         apower_2 = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Fan Power"),
             dbc.CardBody(
                 [
                     html.P(
@@ -275,7 +261,7 @@ def render_content(tab):
             ),
         ]
         coil_temp_bot = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Inlet Coil Temp"),
             dbc.CardBody(
                 [
                     html.P(
@@ -286,7 +272,7 @@ def render_content(tab):
             ),
         ]
         coil_temp_mid = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Mid Coil Temp"),
             dbc.CardBody(
                 [
                     html.P(
@@ -297,7 +283,7 @@ def render_content(tab):
             ),
         ]
         coil_temp_top = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Outlet Coil Temp"),
             dbc.CardBody(
                 [
                     html.P(
@@ -341,7 +327,7 @@ def render_content(tab):
             ),
         ]
         fan_speed = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Ambient Temp"),
             dbc.CardBody(
                 [
                     html.P(
@@ -352,7 +338,7 @@ def render_content(tab):
             ),
         ]
         humidity = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Inside Humidity"),
             dbc.CardBody(
                 [
                     html.P(
@@ -363,7 +349,7 @@ def render_content(tab):
             ),
         ]
         humidity_outside = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Ambient Humidity"),
             dbc.CardBody(
                 [
                     html.P(
@@ -374,7 +360,7 @@ def render_content(tab):
             ),
         ]
         water_rate_ml_hr = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Water Production Rate (ml/hr)"),
             dbc.CardBody(
                 [
                     html.P(
@@ -389,32 +375,43 @@ def render_content(tab):
                     
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(ambient_temp, color="primary", inverse=True)),
+                    
                     dbc.Col(dbc.Card(ambient_temp_outside, color="secondary", inverse=True)),
-                    dbc.Col(dbc.Card(dew_point_inside, color="info", inverse=True)),
+                    dbc.Col(dbc.Card(humidity_outside, color="info", inverse=True)),
                     dbc.Col(dbc.Card(dew_point_outside, color="secondary", inverse=True)),
                 ],
                 className="mb-4",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(card_content, color="success", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="warning", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="danger", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
+                    dbc.Col(dbc.Card(ambient_temp, color="primary", inverse=True)),
+                    dbc.Col(dbc.Card(humidity, color="info", inverse=True)),
+                    dbc.Col(dbc.Card(dew_point_inside, color="secondary", inverse=True)),
                 ],
                 className="mb-4",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(card_content, color="light")),
-                    dbc.Col(dbc.Card(card_content, color="dark", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
-                ]
+                    dbc.Col(dbc.Card(coil_temp_top, color="success", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_mid, color="warning", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_bot, color="danger", inverse=True)),
+                ],
+                className="mb-4",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Card(apower_1, color="light")),
+                    dbc.Col(dbc.Card(apower_2, color="dark", inverse=True)),
+                ],
+                className="mb-4",
             ),  
+             dbc.Row(
+                [
+                    dbc.Col(dbc.Card(water_rate_ml_hr, color="light")),
+                    dbc.Col(dbc.Card(apower_2, color="dark", inverse=True)),
+                ],
+                className="mb-4",
+             ),
         ])
     elif tab == 'tab-2':
 
