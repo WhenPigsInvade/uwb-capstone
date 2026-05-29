@@ -203,7 +203,7 @@ def render_content(tab):
         df = fetch_history()
     
         latest = df.sort_values("time", ascending=False).head(1)
-        # print(latest.get("ambient_temp"))
+        print(df.columns)
 
 
         card_content = [
@@ -220,11 +220,165 @@ def render_content(tab):
         ]
 
         ambient_temp = [
-            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardHeader("Temperature Inside"),
             dbc.CardBody(
                 [
                     html.P(
                         latest.get("ambient_temp"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        ambient_temp_outside = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("ambient_temp_outside"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        apower_1 = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("apower_1"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        apower_2 = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("apower_2"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        chiller_temp = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("chiller_temp"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        coil_temp_bot = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("coil_temp_bot"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        coil_temp_mid = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("coil_temp_mid"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        coil_temp_top = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("coil_temp_top"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        current_weight = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("current_weight"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        dew_point_inside = [
+            dbc.CardHeader("Inside Dew Point"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("dew_point_insaide"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        dew_point_outside = [
+            dbc.CardHeader("Ambient Dew Point"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("dew_point_outside"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        fan_speed = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("fan_speed"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        humidity = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("humidity"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        humidity_outside = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("humidity_outside"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        water_rate_ml_hr = [
+            dbc.CardHeader("Ambient Temperature"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("water_rate_ml_hr"),
                         className="card-text",
                     ),
                 ]
@@ -236,10 +390,9 @@ def render_content(tab):
             dbc.Row(
                 [
                     dbc.Col(dbc.Card(ambient_temp, color="primary", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="secondary", inverse=True)),
-                    dbc.Col(dbc.Card(card_content, color="info", inverse=True)),
+                    dbc.Col(dbc.Card(ambient_temp_outside, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(dew_point_inside, color="info", inverse=True)),
+                    dbc.Col(dbc.Card(dew_point_outside, color="secondary", inverse=True)),
                 ],
                 className="mb-4",
             ),
