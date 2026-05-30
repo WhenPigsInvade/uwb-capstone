@@ -37,7 +37,7 @@
   border: 6px green;
   margin: 4px;
   justify-content: center;
-  height: 75vh;
+  height: 100vh;
   background-color: #83ffbb;
 }
 
@@ -55,7 +55,7 @@
   margin: 4px;
   height: 100%;
 }
-.blue-box{
+.optimal-box{
   font-size: 24px;
   color: #027f40;
   text-align: center;

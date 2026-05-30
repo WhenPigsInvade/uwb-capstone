@@ -106,13 +106,27 @@ app.layout = html.Div(
         ),
 
         # Right Div
-        html.P(
+        
+
+        html.Div(
             children=[
                 html.Div(
                     children=[
                         html.H2("Optimal Settings"),
                     ],
-                    className= "blue-box"
+                    className= "optimal-box center-vertical"
+                ),
+                html.Div(
+                    children=[
+                        html.H2("Optimal Water Flow Rate"),
+                    ],
+                    className= "optimal-box center-vertical"
+                ),
+                html.Div(
+                    children=[
+                        html.H2("Optimal Power Usage"),
+                    ],
+                    className= "optimal-box center-vertical"
                 ),
 
                 html.Div(
@@ -128,6 +142,7 @@ app.layout = html.Div(
                     ],
                     className="box center-vertical"
                 ),
+
                 html.Div(
                     children=[
                         html.P(children="Water Chiller Temperature ℃"),
@@ -141,7 +156,8 @@ app.layout = html.Div(
                         
                     ],
                     className="box center-vertical",
-                )
+                ),
+                   
             ],
             className="header-right",
         ),
@@ -240,6 +256,29 @@ def render_content(tab):
         ]
         apower_2 = [
             dbc.CardHeader("Fan Power"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("apower_2"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        power_total = [
+            dbc.CardHeader("Total Fan Power"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        latest.get("apower_2"),
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        
+        total_power = [
+            dbc.CardHeader("Total Power"),
             dbc.CardBody(
                 [
                     html.P(
@@ -376,7 +415,7 @@ def render_content(tab):
             dbc.Row(
                 [
                     
-                    dbc.Col(dbc.Card(ambient_temp_outside, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(ambient_temp_outside, color="primary", inverse=True)),
                     dbc.Col(dbc.Card(humidity_outside, color="info", inverse=True)),
                     dbc.Col(dbc.Card(dew_point_outside, color="secondary", inverse=True)),
                 ],
@@ -392,26 +431,21 @@ def render_content(tab):
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(coil_temp_top, color="success", inverse=True)),
-                    dbc.Col(dbc.Card(coil_temp_mid, color="warning", inverse=True)),
-                    dbc.Col(dbc.Card(coil_temp_bot, color="danger", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_top, color="#004969", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_mid, color="#004969", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_bot, color="#004969", inverse=True)),
                 ],
                 className="mb-4",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(apower_1, color="light")),
-                    dbc.Col(dbc.Card(apower_2, color="dark", inverse=True)),
+                    dbc.Col(dbc.Card(apower_1, color="light" )),
+                    dbc.Col(dbc.Card(apower_2, color="light")),
+                    dbc.Col(dbc.Card(total_power, color="light", )),
+                    dbc.Col(dbc.Card(water_rate_ml_hr, color="blue",inverse=True)),
                 ],
                 className="mb-4",
             ),  
-             dbc.Row(
-                [
-                    dbc.Col(dbc.Card(water_rate_ml_hr, color="light")),
-                    dbc.Col(dbc.Card(apower_2, color="dark", inverse=True)),
-                ],
-                className="mb-4",
-             ),
         ])
     elif tab == 'tab-2':
 
