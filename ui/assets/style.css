@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin: 4px;
+  margin: 2px;
   justify-content: center;
   height: 99vh;
 }
@@ -22,7 +22,7 @@
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin: 4px;
+  margin: 2px;
   justify-content: center;
   height: 99vh;
 }
@@ -34,16 +34,15 @@
   display: flex;
   flex-direction: column;
   text-align: center;
-  border: 6px green;
-  margin: 4px;
+  margin: 2px;
   justify-content: center;
-  height: 100vh;
+  height: 99vh;
   background-color: #83ffbb;
 }
 
-.header-right > div {
-    flex: 1;             /* Each child takes equal space */
-}
+/*.header-right > div {
+    flex: 1;              Each child takes equal space 
+}*/
 
 .box{
   font-size: 24px;
@@ -56,19 +55,19 @@
   height: 100%;
 }
 .optimal-box{
-  font-size: 24px;
   color: #027f40;
   text-align: center;
-  margin: 4px;
-  height: 100%;
+  font-weight: bold;
+  margin: 2px;
+  height: 10%;
 }
 
-/*.center-vertical {
+.center-vertical {
   display: flex;
   flex-direction: column;
-  justify-content: center;  /* vertical centering 
+  justify-content: center;  /*vertical centering */
   background-color: steelblue;
-}*/
+}
 
 
 .temperature {

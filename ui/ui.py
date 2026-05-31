@@ -78,6 +78,7 @@ app.layout = html.Div(
                     ],
                     className= "water-collection box"
                 ),
+                
             ],
             className="header-left"
         ),
@@ -112,21 +113,10 @@ app.layout = html.Div(
             children=[
                 html.Div(
                     children=[
-                        html.H2("Optimal Settings"),
+                        html.H2(children= "Optimal Settings"),
                     ],
-                    className= "optimal-box center-vertical"
-                ),
-                html.Div(
-                    children=[
-                        html.H2("Optimal Water Flow Rate"),
-                    ],
-                    className= "optimal-box center-vertical"
-                ),
-                html.Div(
-                    children=[
-                        html.H2("Optimal Power Usage"),
-                    ],
-                    className= "optimal-box center-vertical"
+                    className= "optimal-box",
+                    style= {"font-weight":"bold"}
                 ),
 
                 html.Div(
@@ -140,7 +130,8 @@ app.layout = html.Div(
                             backgroundColor="#86D1FF"
                         )
                     ],
-                    className="box center-vertical"
+                    className="box center-vertical",
+                    style={ "height":"40%"}
                 ),
 
                 html.Div(
@@ -156,6 +147,23 @@ app.layout = html.Div(
                         
                     ],
                     className="box center-vertical",
+                    style={ "height":"50%"}
+                ),
+                html.Div(
+                    children=[
+                        html.P("Optimal Water Flow Rate"),
+                        html.P("0 mL/hr"),
+                    ],
+                    className= "box center-vertical",
+                    style={ "height":"35%"}
+                ),
+                html.Div(
+                    children=[
+                        html.P("Optimal Power Usage"),
+                        html.P("10 Watts"),
+                    ],
+                    className= "box center-vertical",
+                    style={ "height":"25%"}
                 ),
                    
             ],
@@ -165,7 +173,7 @@ app.layout = html.Div(
     ],
     className="header",
     style={
-        "minHeight": "100vh",  # full viewport height
+        "minHeight": "99vh",  # full viewport height
         "display": "flex",
         "flexDirection": "row",
         "align-items": "flex-start",
@@ -348,7 +356,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("dew_point_insaide"),
+                        latest.get("dew_point_inside"),
                         className="card-text",
                     ),
                 ]
@@ -415,34 +423,32 @@ def render_content(tab):
             dbc.Row(
                 [
                     
-                    dbc.Col(dbc.Card(ambient_temp_outside, color="primary", inverse=True)),
-                    dbc.Col(dbc.Card(humidity_outside, color="info", inverse=True)),
-                    dbc.Col(dbc.Card(dew_point_outside, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(ambient_temp_outside, color="#00628e", inverse=True)),
+                    dbc.Col(dbc.Card(humidity_outside, color="#49abc8", inverse=True)),
+                    dbc.Col(dbc.Card(dew_point_outside, color="#266774", inverse=True)),
                 ],
                 className="mb-4",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(ambient_temp, color="primary", inverse=True)),
-                    dbc.Col(dbc.Card(humidity, color="info", inverse=True)),
-                    dbc.Col(dbc.Card(dew_point_inside, color="secondary", inverse=True)),
+                    dbc.Col(dbc.Card(ambient_temp, color="#00628e", inverse=True)),
+                    dbc.Col(dbc.Card(humidity, color="#49abc8", inverse=True)),
+                    dbc.Col(dbc.Card(dew_point_inside, color="#266774", inverse=True)),
                 ],
                 className="mb-4",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(coil_temp_top, color="#004969", inverse=True)),
-                    dbc.Col(dbc.Card(coil_temp_mid, color="#004969", inverse=True)),
-                    dbc.Col(dbc.Card(coil_temp_bot, color="#004969", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_top, color="#00364D", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_mid, color="#00364D", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_bot, color="#00364D", inverse=True)),
                 ],
                 className="mb-4",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(apower_1, color="light" )),
-                    dbc.Col(dbc.Card(apower_2, color="light")),
-                    dbc.Col(dbc.Card(total_power, color="light", )),
-                    dbc.Col(dbc.Card(water_rate_ml_hr, color="blue",inverse=True)),
+                    dbc.Col(dbc.Card(apower_1, color="#aed0d6" )),
+                    dbc.Col(dbc.Card(apower_2, color="#aed0d6")),
                 ],
                 className="mb-4",
             ),  
