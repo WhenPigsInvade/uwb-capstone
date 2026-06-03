@@ -78,7 +78,6 @@ app.layout = html.Div(
                     ],
                     className= "water-collection box"
                 ),
-                
             ],
             className="header-left"
         ),
