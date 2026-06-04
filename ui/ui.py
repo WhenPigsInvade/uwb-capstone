@@ -33,7 +33,7 @@ app.layout = html.Div(
             children=[
                 html.Div(
                     children=[
-                        html.P(children="Fan Speed Level"),
+                        html.P(children="Fan Speed Level"), #needs connection to data variable fan_speed
                         daq.Gauge(
                             min=0,
                             color="#68C5FF",
@@ -45,10 +45,11 @@ app.layout = html.Div(
                         )
                     ],
                     className="fan-speed box"
+                    
                 ),
                 html.Div(
                     children=[
-                        html.P(children=" Water Chiller Temp ℃"),
+                        html.P(children=" Water Chiller Temp ℃"), #needs connection to data variable chiller_temp
                         daq.Thermometer(
                             value=10,
                             max=20,
@@ -60,10 +61,11 @@ app.layout = html.Div(
                         )  
                     ],
                     className="chiller-temp box"
+                    
                 ),
                 html.Div(
                     children=[
-                        html.P("Total Water Collected"),
+                        html.P("Total Water Collected"), #needs connection to data variable current_weight
                         daq.Tank(
                         id="progress-gauge",
                         color="#86D1FF",
@@ -77,6 +79,7 @@ app.layout = html.Div(
                         ),
                     ],
                     className= "water-collection box"
+                    
                 ),
             ],
             className="header-left"
@@ -120,7 +123,7 @@ app.layout = html.Div(
 
                 html.Div(
                     children=[
-                        html.P(children="Fan Speed Level"),
+                        html.P(children="Fan Speed Level"), #needs connection to optimizing dataset
                         daq.LEDDisplay(
                             id='optimal-fan-speed',
                             size=25,
@@ -135,7 +138,7 @@ app.layout = html.Div(
 
                 html.Div(
                     children=[
-                        html.P(children="Water Chiller Temperature ℃"),
+                        html.P(children="Water Chiller Temperature ℃"), #needs connection to optimizing dataset
                         daq.LEDDisplay(
                             id='optimal-chiller-temp',
                             size=25,
@@ -150,19 +153,19 @@ app.layout = html.Div(
                 ),
                 html.Div(
                     children=[
-                        html.P("Optimal Water Flow Rate"),
-                        html.P("0 mL/hr"),
+                        html.P("Optimized Water Flow Rate"), #needs connection to optimizing dataset
+                        html.P(" mL/hr"),
                     ],
                     className= "box center-vertical",
                     style={ "height":"35%"}
                 ),
                 html.Div(
                     children=[
-                        html.P("Optimal Power Usage"),
-                        html.P("10 Watts"),
+                        html.P("Optimized Power Usage"), #needs connection to optimizing dataset
+                        html.P(" kWh"),
                     ],
                     className= "box center-vertical",
-                    style={ "height":"25%"}
+                    style={ "height":"35%"}
                 ),
                    
             ],
@@ -226,17 +229,20 @@ def render_content(tab):
         df = fetch_history()
     
         latest = df.sort_values("time", ascending=False).head(1)
-        print(df.columns)
+        power_total = latest.get("apower_1") + latest.get("apower_2")
+        power_total = round(power_total,2)
 
         ambient_temp = [
-            dbc.CardHeader("Temp Inside"),
+            dbc.CardHeader("Inside Temp"),
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("ambient_temp"),
+                        f"{latest.get('ambient_temp').item()} ℃",
+                        #latest.get("ambient_temp"),
+                        #f"{latest.get("ambient_temp").values([1.])} C",
                         className="card-text",
                     ),
-                ]
+                ],
             ),
         ]
         ambient_temp_outside = [
@@ -244,63 +250,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("ambient_temp_outside"),
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-        apower_1 = [
-            dbc.CardHeader("Water Chiller Power"),
-            dbc.CardBody(
-                [
-                    html.P(
-                        latest.get("apower_1"),
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-        apower_2 = [
-            dbc.CardHeader("Fan Power"),
-            dbc.CardBody(
-                [
-                    html.P(
-                        latest.get("apower_2"),
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-        power_total = [
-            dbc.CardHeader("Total Fan Power"),
-            dbc.CardBody(
-                [
-                    html.P(
-                        latest.get("apower_2"),
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-        
-        total_power = [
-            dbc.CardHeader("Total Power"),
-            dbc.CardBody(
-                [
-                    html.P(
-                        latest.get("apower_2"),
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-        chiller_temp = [
-            dbc.CardHeader("Ambient Temperature"),
-            dbc.CardBody(
-                [
-                    html.P(
-                        latest.get("chiller_temp"),
+                        f"{latest.get("ambient_temp_outside").item()} ℃",
                         className="card-text",
                     ),
                 ]
@@ -311,7 +261,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("coil_temp_bot"),
+                        f"{latest.get("coil_temp_bot").item()} ℃",
                         className="card-text",
                     ),
                 ]
@@ -322,7 +272,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("coil_temp_mid"),
+                        f"{latest.get("coil_temp_mid").item()} ℃",
                         className="card-text",
                     ),
                 ]
@@ -333,18 +283,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("coil_temp_top"),
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-        current_weight = [
-            dbc.CardHeader("Ambient Temperature"),
-            dbc.CardBody(
-                [
-                    html.P(
-                        latest.get("current_weight"),
+                        f"{latest.get("coil_temp_top").item()} ℃",
                         className="card-text",
                     ),
                 ]
@@ -355,7 +294,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("dew_point_inside"),
+                        f"{latest.get("dew_point_inside").item()} ℃",
                         className="card-text",
                     ),
                 ]
@@ -366,18 +305,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("dew_point_outside"),
-                        className="card-text",
-                    ),
-                ]
-            ),
-        ]
-        fan_speed = [
-            dbc.CardHeader("Ambient Temp"),
-            dbc.CardBody(
-                [
-                    html.P(
-                        latest.get("fan_speed"),
+                        f"{latest.get("dew_point_outside").item()} ℃",
                         className="card-text",
                     ),
                 ]
@@ -388,7 +316,7 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("humidity"),
+                        f"{latest.get("humidity").item()} %",
                         className="card-text",
                     ),
                 ]
@@ -399,18 +327,51 @@ def render_content(tab):
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("humidity_outside"),
+                        f"{latest.get("humidity_outside").item()} %",
                         className="card-text",
                     ),
                 ]
             ),
         ]
         water_rate_ml_hr = [
-            dbc.CardHeader("Water Production Rate (ml/hr)"),
+            dbc.CardHeader("Water Production Rate"),
             dbc.CardBody(
                 [
                     html.P(
-                        latest.get("water_rate_ml_hr"),
+                        f"{latest.get("water_rate_ml_hr").item()} mL/hr",
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        total_power = [
+            dbc.CardHeader("Total Power Usage"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        f"{power_total.item()} kWh",
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        proj_water_rate = [
+            dbc.CardHeader("Projected Water Production Rate"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        f"{latest.get("water_rate_ml_hr").item()} mL/hr", #needs to connect to projection data
+                        className="card-text",
+                    ),
+                ]
+            ),
+        ]
+        proj_total_power = [
+            dbc.CardHeader("Projected Total Power Usage"),
+            dbc.CardBody(
+                [
+                    html.P(
+                        f"{power_total.item()} kWh", #needs to connect to projection data
                         className="card-text",
                     ),
                 ]
@@ -422,34 +383,42 @@ def render_content(tab):
             dbc.Row(
                 [
                     
-                    dbc.Col(dbc.Card(ambient_temp_outside, color="#00628e", inverse=True)),
-                    dbc.Col(dbc.Card(humidity_outside, color="#49abc8", inverse=True)),
-                    dbc.Col(dbc.Card(dew_point_outside, color="#266774", inverse=True)),
+                    dbc.Col(dbc.Card(ambient_temp_outside, color="#00628e", inverse=True,style={"font-size": 20})),
+                    dbc.Col(dbc.Card(humidity_outside, color="#49abc8", inverse=True,style={"font-size": 20})),
+                    dbc.Col(dbc.Card(dew_point_outside, color="#266774", inverse=True,style={"font-size": 20})),
                 ],
-                className="mb-4",
+                className="mb-3",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(ambient_temp, color="#00628e", inverse=True)),
-                    dbc.Col(dbc.Card(humidity, color="#49abc8", inverse=True)),
-                    dbc.Col(dbc.Card(dew_point_inside, color="#266774", inverse=True)),
+                    dbc.Col(dbc.Card(ambient_temp, color="#00628e", inverse=True,style={"font-size": 20})),
+                    dbc.Col(dbc.Card(humidity, color="#49abc8", inverse=True,style={"font-size": 20})),
+                    dbc.Col(dbc.Card(dew_point_inside, color="#266774", inverse=True,style={"font-size": 20})),
                 ],
-                className="mb-4",
+                className="mb-3",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(coil_temp_top, color="#00364D", inverse=True)),
-                    dbc.Col(dbc.Card(coil_temp_mid, color="#00364D", inverse=True)),
-                    dbc.Col(dbc.Card(coil_temp_bot, color="#00364D", inverse=True)),
+                    dbc.Col(dbc.Card(coil_temp_top, color="#00364D", inverse=True,style={"font-size": 20})),
+                    dbc.Col(dbc.Card(coil_temp_mid, color="#00364D", inverse=True,style={"font-size": 20})),
+                    dbc.Col(dbc.Card(coil_temp_bot, color="#00364D", inverse=True,style={"font-size": 20})),
                 ],
-                className="mb-4",
+                className="mb-3",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dbc.Card(apower_1, color="#aed0d6" )),
-                    dbc.Col(dbc.Card(apower_2, color="#aed0d6")),
+                    dbc.Col(dbc.Card(water_rate_ml_hr, color="#aed0d6",style={"font-size": 20})),
+                    dbc.Col(dbc.Card(total_power, color="#aed0d6",style={"font-size": 20})),
+                    
                 ],
-                className="mb-4",
+                className="mb-3",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Card(proj_water_rate, color="white", style={"font-size": 20},className="border border-info border-4")),
+                    dbc.Col(dbc.Card(proj_total_power, color="white", style={"font-size": 20}, className="border border-info border-4")),
+                ],
+                className="mb-3",
             ),  
         ])
     elif tab == 'tab-2':
