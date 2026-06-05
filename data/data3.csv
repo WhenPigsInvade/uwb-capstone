@@ -1,0 +1,33 @@
+# Dummy seed data for InfluxDB testing
+# Schema matches the pd.rename logic in main.py
+_time,device_id,sensor_type,unit,_value
+2026-05-27T12:00:00Z,esp32-01,ambient_temp,°C,24.5
+2026-05-27T12:00:00Z,esp32-01,humidity,%,60.2
+2026-05-27T12:00:00Z,esp32-01,ambient_temp_outside,°C,28.1
+2026-05-27T12:00:00Z,esp32-01,humidity_outside,%,55.0
+2026-05-27T12:00:00Z,esp32-01,coil_temp_top,°C,5.1
+2026-05-27T12:00:00Z,esp32-01,coil_temp_mid,°C,4.8
+2026-05-27T12:00:00Z,esp32-01,coil_temp_bot,°C,4.2
+2026-05-27T12:00:00Z,esp32-01,dew_point_inside,°C,16.3
+2026-05-27T12:00:00Z,esp32-01,dew_point_outside,°C,18.2
+2026-05-27T12:00:00Z,esp32-01,current_weight,g,1500.0
+2026-05-27T12:00:00Z,esp32-01,water_rate_ml_hr,ml/hr,250.0
+2026-05-27T12:00:00Z,esp32-01,fan_speed,lvl,3.0
+2026-05-27T12:00:00Z,esp32-01,chiller_temp,°C,2.0
+2026-05-27T12:00:00Z,esp32-01,apower_1,kWh,120.5
+2026-05-27T12:00:00Z,esp32-01,apower_2,kWh,85.0
+2026-05-27T12:20:00Z,esp32-01,ambient_temp,°C,24.1
+2026-05-27T12:20:00Z,esp32-01,humidity,%,61.5
+2026-05-27T12:20:00Z,esp32-01,ambient_temp_outside,°C,27.8
+2026-05-27T12:20:00Z,esp32-01,humidity_outside,%,56.2
+2026-05-27T12:20:00Z,esp32-01,coil_temp_top,°C,4.9
+2026-05-27T12:20:00Z,esp32-01,coil_temp_mid,°C,4.5
+2026-05-27T12:20:00Z,esp32-01,coil_temp_bot,°C,3.9
+2026-05-27T12:20:00Z,esp32-01,dew_point_inside,°C,16.5
+2026-05-27T12:20:00Z,esp32-01,dew_point_outside,°C,18.4
+2026-05-27T12:20:00Z,esp32-01,current_weight,g,1585.5
+2026-05-27T12:20:00Z,esp32-01,water_rate_ml_hr,ml/hr,256.5
+2026-05-27T12:20:00Z,esp32-01,fan_speed,lvl,3.0
+2026-05-27T12:20:00Z,esp32-01,chiller_temp,°C,2.0
+2026-05-27T12:20:00Z,esp32-01,apower_1,kWh,121.0
+2026-05-27T12:20:00Z,esp32-01,apower_2,kWh,84.5
