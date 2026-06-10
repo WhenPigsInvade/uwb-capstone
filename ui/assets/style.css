@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin: 4px;
+  margin: 2px;
   justify-content: center;
   height: 99vh;
 }
@@ -22,41 +22,50 @@
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin: 4px;
+  margin: 2px;
   justify-content: center;
   height: 99vh;
 }
 
 .header-right {
   font-size: 48px;
-  color: blue;
+  color: #1e2130;
   width: 20%;
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin: 4px;
+  margin: 2px;
   justify-content: center;
   height: 99vh;
-  background-color: midnightblue;
+  background-color: #83ffbb;
 }
 
-.header-right > div {
-    flex: 1;             /* Each child takes equal space */
-}
+/*.header-right > div {
+    flex: 1;              Each child takes equal space 
+}*/
 
 .box{
   font-size: 24px;
-  color: white;
+  color:white;
   text-align: center;
   /*border: 4px solid black;*/
+  justify-content: center;  /* vertical centering */
+  background-color: steelblue;
   margin: 4px;
   height: 100%;
+}
+.optimal-box{
+  color: #027f40;
+  text-align: center;
+  font-weight: bold;
+  margin: 2px;
+  height: 10%;
 }
 
 .center-vertical {
   display: flex;
   flex-direction: column;
-  justify-content: center;  /* vertical centering */
+  justify-content: center;  /*vertical centering */
   background-color: steelblue;
 }
 
@@ -78,9 +87,8 @@
 }
 
 .chiller-temp{
-  display: flex;
-  flex-direction: column;
-  
+  /*display: flex;
+  flex-direction: column;*/
   align-items: center;
   margin: 1;
   padding: 0;
@@ -91,7 +99,7 @@
 .fan-speed {
   display: flex;
   flex-direction: column;
-  
+  color: white;
   align-items: center;
   margin: 1;
   padding: 0;
@@ -101,9 +109,8 @@
 }
 
 .water-collection {
-  display: flex;
-  flex-direction: column;
-  
+  /*display: flex;
+  flex-direction: column;*/
   align-items: center;
   margin: 1;
   padding: 0;
